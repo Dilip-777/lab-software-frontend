@@ -1,0 +1,47 @@
+/* ckeditor-style.css */
+
+/* Style the editor container */
+.ck-editor {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+/* Style the editable content area */
+.ck-content {
+  min-height: 20rem;
+  font-size: 16px;
+}
+
+/* Style the toolbar */
+.ck-toolbar {
+  background-color: #f2f2f2;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+/* Style the toolbar buttons */
+.ck-button {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+/* Style the dropdown menus */
+.ck-dropdown {
+  background-color: #f2f2f2;
+  border: 1px solid #ccc;
+}
+
+.ck
+  .ck-content
+  .ck-editor__editable
+  .ck-rounded-corners
+  .ck-editor__editable_inline
+  .ck-blurred {
+  overflow-y: auto;
+}
