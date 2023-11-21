@@ -34,7 +34,7 @@ export default function FormSelect({
             : "border-gray-400 focus:border-blue-600"
         }  outline-none shadow-sm text-sm  h-10 px-3 font-semibold ${
           field.value ? "text-gray-700" : "text-gray-400"
-        } my-2 min-w-[270px] ${className}`}
+        } my-2 min-w-[270px] max-w-[10rem] ${className}`}
         {...rest}
       >
         <option value="" selected>

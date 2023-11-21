@@ -31,7 +31,6 @@ export default function Navbar({
       const res = await axios.get(
         `http://localhost:5000/role/getprivileges?roleid=${user.roleId}`
       );
-      // setPrivileges(res.data.data || []);
       const privileges = res.data.data || [];
       const privilegesArray = privileges.map((privilege: any) => {
         return privilege.name;

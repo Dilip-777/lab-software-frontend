@@ -1,8 +1,9 @@
 import { Dialog, Transition } from "@headlessui/react";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import Divider from "../../util/Divider";
 import { api } from "../../Api";
 import TestValue from "./testValue";
+import { evaluate } from "mathjs";
 
 interface props {
   isOpen: boolean;
@@ -23,7 +24,17 @@ export default function ResultModal({
   const [discard, setDiscard] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState(false);
+  const [formulas, setFormulas] = useState<Formulas[]>([]);
   const [focus, setFocus] = useState<number | undefined>(undefined);
+
+  console.log(order, "order");
+
+  const fetchFormulas = async () => {
+    const res = await api.get("/order/getformulas?orderId=" + order?.id);
+    setFormulas(res.data.data);
+  };
+
+  // console.log(formulas, "formulas");
 
   const handleChange = (value: any, id: number, field: string) => {
     const change = changes.find((c) => c.id === id);
@@ -37,11 +48,22 @@ export default function ResultModal({
   };
 
   const handleSave = async () => {
+    if (order?.orderstatus === "Authorise") {
+      await api.put("/order/updateStatus", {
+        id: order.id,
+        orderstatus: "Test Completed",
+        reporttime: new Date(),
+      });
+      fetchOrders && fetchOrders();
+      closeModal();
+      return;
+    }
     setLoading(true);
     await api.put("/order/updateOrder", {
       tests: changes,
       orderId: order?.id,
     });
+    await api.get("/order/statuscomplete");
     closeModal();
     setInput(false);
     setChanges([]);
@@ -49,7 +71,95 @@ export default function ResultModal({
     fetchOrders && fetchOrders();
   };
 
-  console.log(changes, "changes");
+  useEffect(() => {
+    fetchFormulas();
+  }, [order]);
+
+  const handleFormula = (profile: OrderProfile, test: OrderTest) => {
+    let variables = {};
+
+    const formula = formulas.find((f) => f.testId === test.test.id);
+    if (formula?.firsttest) {
+      const firsttest = changes.find(
+        (c) =>
+          c.id === profile.tests.find((t) => t.name === formula?.firsttest)?.id
+      );
+      if (
+        !parseInt(formula.firsttest.toLowerCase().replace(/ /g, "")) &&
+        firsttest?.observedValue
+      )
+        variables = {
+          ...variables,
+          [formula.firsttest.toLowerCase().replace(/ /g, "")]:
+            firsttest?.observedValue || test.observedValue || 0,
+        };
+    }
+    if (formula?.secondtest) {
+      const secondtest = changes.find(
+        (c) =>
+          c.id === profile.tests.find((t) => t.name === formula?.secondtest)?.id
+      );
+      if (
+        !parseInt(formula.secondtest.toLowerCase().replace(/ /g, "")) &&
+        secondtest?.observedValue
+      ) {
+        variables = {
+          ...variables,
+          [formula.secondtest.toLowerCase().replace(/ /g, "")]:
+            secondtest?.observedValue || test.observedValue || 0,
+        };
+      }
+    }
+    if (formula?.thirdtest) {
+      const thirdtest = changes.find(
+        (c) =>
+          c.id === profile.tests.find((t) => t.name === formula?.thirdtest)?.id
+      );
+      if (
+        !parseInt(formula.thirdtest.toLowerCase().replace(/ /g, "")) &&
+        thirdtest?.observedValue
+      )
+        variables = {
+          ...variables,
+          [formula.thirdtest.toLowerCase().replace(/ /g, "")]:
+            thirdtest?.observedValue || test.observedValue || 0,
+        };
+    }
+    // const ch = changes.find((c) => )
+    const expression =
+      "(" +
+      (formula?.firsttest?.toLowerCase().replace(/ /g, "") || "") +
+      (formula?.firstoperator || "") +
+      (formula?.secondtest?.toLowerCase().replace(/ /g, "") || "") +
+      ")" +
+      (formula?.secondoperator || "") +
+      (formula?.thirdtest?.toLowerCase().replace(/ /g, "") || "");
+    console.log(expression, "expression");
+    try {
+      const v = evaluate(expression, variables).toFixed(2);
+
+      console.log(v, "v");
+
+      if (v) {
+        const c = changes.find((c) => c.id === test.id);
+        console.log(c, "c", changes, "changes");
+
+        if (c) {
+          if (c.observedValue !== parseFloat(v)) {
+            c.observedValue = parseFloat(v);
+            setChanges([...changes]);
+          }
+        } else {
+          setChanges([
+            ...changes,
+            { id: test.id, observedValue: parseFloat(v) },
+          ]);
+        }
+      }
+    } catch (e) {
+      console.log(e, "error");
+    }
+  };
 
   return (
     <>
@@ -127,17 +237,44 @@ export default function ResultModal({
                                     {profile.name}
                                   </td>
                                 </tr>
-                                {profile.tests.map((test, index) => (
-                                  <TestValue
-                                    focus={index === 0}
-                                    test={test}
-                                    patient={patient as Patient}
-                                    input={input}
-                                    handleChange={handleChange}
-                                  />
+                                {profile.headings.map((heading) => (
+                                  <>
+                                    <tr>
+                                      <td className="px-3 py-2 text-sm font-semibold text-gray-800 ">
+                                        {heading.heading}
+                                      </td>
+                                    </tr>
+                                    {heading.tests.map((test, index) => (
+                                      <TestValue
+                                        focus={index === 0}
+                                        changes={changes}
+                                        test={test}
+                                        patient={patient as Patient}
+                                        input={input}
+                                        handleChange={handleChange}
+                                      />
+                                    ))}
+                                    <TableSpace />
+                                  </>
                                 ))}
+                                {profile.tests.map((test, index) => {
+                                  handleFormula(profile, test);
+                                  return (
+                                    <TestValue
+                                      focus={index === 0}
+                                      changes={changes}
+                                      test={test}
+                                      patient={patient as Patient}
+                                      input={input}
+                                      handleChange={handleChange}
+                                      handleFormula={handleFormula}
+                                      profile={profile}
+                                    />
+                                  );
+                                })}
                               </>
                             ))}
+
                             <tr>
                               <td className="px-6 py-2 text-sm font-medium text-gray-800 h-10"></td>
                               <td className="px-6 py-2 text-sm font-medium text-gray-800 "></td>
@@ -163,30 +300,60 @@ export default function ResultModal({
                     {order?.packages && order?.packages.length > 0 && (
                       <Divider />
                     )}
-                    {order?.profiles.map((pfl) => (
-                      <div className="w-full">
-                        <p className="mb-3 font-semibold text-center text-md">
-                          {pfl.name}
-                        </p>
-                        <table className="min-w-full divide-y divide-gray-200">
-                          {<TableHeader />}
-                          <tbody className="divide-y divide-gray-200">
-                            {pfl.tests.map((test, index) => (
-                              <TestValue
-                                focus={
-                                  order?.packages.length === 0 && index === 0
-                                }
-                                key={test.id}
-                                test={test}
-                                patient={patient as Patient}
-                                input={input}
-                                handleChange={handleChange}
-                              />
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ))}
+                    {order?.profiles.map((profile) => {
+                      return (
+                        <div className="w-full">
+                          <p className="mb-3 font-semibold text-center text-md">
+                            {profile.name}
+                          </p>
+                          <table className="min-w-full divide-y divide-gray-200">
+                            {<TableHeader />}
+                            <tbody className="divide-y divide-gray-200">
+                              {profile.headings.map((heading) => (
+                                <>
+                                  <tr>
+                                    <td className="px-3 py-2 text-sm font-semibold text-gray-800 ">
+                                      {heading.heading}
+                                    </td>
+                                  </tr>
+                                  {heading.tests.map((test, index) => (
+                                    <TestValue
+                                      focus={index === 0}
+                                      changes={changes}
+                                      test={test}
+                                      patient={patient as Patient}
+                                      input={input}
+                                      handleChange={handleChange}
+                                    />
+                                  ))}
+                                  <TableSpace />
+                                </>
+                              ))}
+                              {profile.tests.map((test, index) => {
+                                handleFormula(profile, test);
+
+                                return (
+                                  <TestValue
+                                    focus={
+                                      order?.packages.length === 0 &&
+                                      index === 0
+                                    }
+                                    key={test.id}
+                                    test={test}
+                                    patient={patient as Patient}
+                                    input={input}
+                                    handleChange={handleChange}
+                                    changes={changes}
+                                    handleFormula={handleFormula}
+                                    profile={profile}
+                                  />
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    })}
                     {order?.profiles && order?.profiles.length > 0 && (
                       <Divider />
                     )}
@@ -217,7 +384,7 @@ export default function ResultModal({
                       </div>
                     ))}
                   </div>
-                  {input && (
+                  {(input || order?.orderstatus === "Authorise") && (
                     <div className="flex justify-end mt-auto fixed bottom-5 right-5">
                       <button
                         onClick={() => handleSave()}
@@ -234,7 +401,9 @@ export default function ResultModal({
                             role="status"
                           ></div>
                         )}
-                        Save
+                        {order?.orderstatus === "Authorise"
+                          ? "Authorise"
+                          : "Save"}
                       </button>
 
                       <button
@@ -247,7 +416,7 @@ export default function ResultModal({
                         type="button"
                         className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 "
                       >
-                        Cancel
+                        Close
                       </button>
                     </div>
                   )}
@@ -298,5 +467,17 @@ const TableHeader = () => {
         </th>
       </tr>
     </thead>
+  );
+};
+
+const TableSpace = () => {
+  return (
+    <tr>
+      <td className="px-6 py-2 text-sm font-medium text-gray-800 h-10"></td>
+      <td className="px-6 py-2 text-sm font-medium text-gray-800 "></td>
+      <td className="px-6 py-2 text-sm font-medium text-gray-800 "></td>
+      <td className="px-6 py-2 text-sm font-medium text-gray-800 "></td>
+      <td className="px-6 py-2 text-sm font-medium text-gray-800 "></td>
+    </tr>
   );
 };

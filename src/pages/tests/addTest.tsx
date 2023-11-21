@@ -18,6 +18,7 @@ const referenceSchema = z.object({
   lowerValue: z.number(),
   upperValue: z.number(),
   unit: z.string(),
+  note: z.string().optional()
 });
 
 const FormSchema = z.object({
@@ -86,6 +87,7 @@ function AddTest() {
           lowerValue: r.lowerValue,
           upperValue: r.upperValue,
           unit: r.unit,
+          note: r.note
         }))
       : [
           {
@@ -95,6 +97,7 @@ function AddTest() {
             lowerValue: 0,
             upperValue: 0,
             unit: "",
+            note: ""
           },
         ],
   };
@@ -124,7 +127,7 @@ function AddTest() {
         </div>
       ) : (
         <div className=" pt-5 px-8 rounded-md h-full pb-[5rem] w-full bg-white shadow-md">
-          <p className="text-lg m-2">Add User</p>
+          <p className="text-lg m-2">Add Test</p>
 
           {/* <div dangerouslySetInnerHTML={{ __html: text }}></div> */}
           <div className=" border-[1px] border-t border-gray-500 w-full my-3"></div>
@@ -208,6 +211,7 @@ function AddTest() {
                         label: d.name,
                       }))}
                       name="departmentId"
+                     
                     />
                     <FormInput
                       name="sampletype"

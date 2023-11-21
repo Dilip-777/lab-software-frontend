@@ -1,33 +1,30 @@
-import { Route, Routes } from "react-router-dom";
-import Login from "./Components/Login";
-import Home from "./pages";
-import Navbar from "./Components/Navbar";
-import Test from "./Components/Test";
-import Role from "./Components/Role";
-import AddRole from "./Components/Role/addRole";
-import AddUser from "./Components/User/addUser";
-import Users from "./Components/User/users";
-import AssignPrivileges from "./Components/assigningPrevelges";
-import AddDepartment from "./Components/Department/addDepartment";
-import Departments from "./Components/Department";
-import Tests from "./pages/tests/index";
-import AddTest from "./pages/tests/addTest";
-import { useState } from "react";
-import AddProfile from "./Components/Profile/addProfile";
-import Profiles from "./Components/Profile";
-import AddPackage from "./Components/Packages/addPackage";
-import Packages from "./Components/Packages";
-import PriceLists from "./Components/PriceList";
-import RefLabs from "./Components/RefLab";
-import AddRefLab from "./Components/RefLab/addRefLab";
-import RefDoctors from "./Components/refDoctor";
-import AddRefDoctor from "./Components/refDoctor/addRefdoctor";
-import PatientCreation from "./Components/Patient/patientcreation";
-import PatientStatus from "./Components/Patient/patientStatus";
-import PatientProfile from "./Components/Patient/profile";
+import { Navigate, Route, Routes } from 'react-router-dom';
+import Login from './Components/Login';
+import Home from './pages';
+import Navbar from './Components/Navbar';
+import { useEffect, useState } from 'react';
+import { routes } from './store/routes';
+import { api } from './Api';
 
 export default function Router1() {
-  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [privileges, setPrivileges] = useState<any[]>([]);
+  const user = JSON.parse(localStorage.getItem('user')!);
+
+  const fetchPrivileges = async () => {
+    if (user?.roleId) {
+      const res = await api.get(`/role/getprivileges?roleid=${user.roleId}`);
+      const privileges = res.data.data || [];
+      const privilegesArray = privileges.map((privilege: any) => {
+        return privilege.name;
+      });
+      setPrivileges(privilegesArray);
+    }
+  };
+
+  useEffect(() => {
+    fetchPrivileges();
+  }, []);
 
   return (
     <>
@@ -35,7 +32,12 @@ export default function Router1() {
       {token ? (
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/test" element={<Test />} />
+          {routes
+            .filter((r) => privileges.includes(r.privilege))
+            .map((route) =>
+              route.paths.map(({ path, element: Component }) => <Route path={path} element={<Component />} />)
+            )}
+          {/* <Route path="/test" element={<Test />} />
           <Route path="/roles" element={<Role />} />
           <Route path="/role/:id" element={<AddRole />} />
           <Route path="/users" element={<Users />} />
@@ -56,11 +58,13 @@ export default function Router1() {
           <Route path="/refdoctor/:id" element={<AddRefDoctor />} />
           <Route path="/patient/:id" element={<PatientCreation />} />
           <Route path="/patient/status" element={<PatientStatus />} />
-          <Route path="/patient/profile/:id" element={<PatientProfile />} />
+          <Route path="/patient/profile/:id" element={<PatientProfile />} /> */}
+          {/* <Route path="*" element={<Navigate to="/" />} /> */}
         </Routes>
       ) : (
         <Routes>
           <Route path="/login" element={<Login setToken={setToken} />} />
+          <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       )}
     </>

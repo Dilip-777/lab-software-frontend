@@ -1,29 +1,21 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom";
-import * as z from "zod";
-import { toFormikValidationSchema } from "zod-formik-adapter";
-import { FieldArray, Formik } from "formik";
-import FormInput from "../FormikComponents/FormInput";
-import FormSelect from "../FormikComponents/FormSelect";
-import {
-  api,
-  getDepartments,
-  getPackage,
-  getProfile,
-  getProfiles,
-  getTest,
-  getTests,
-} from "../../Api";
-import NoteModal from "../NoteModal";
-import Autocomplete from "../Profile/autocomplete";
-import Test from "../Profile/TestandReferences";
-import ReferenceModal from "../Profile/ReferencesModal";
-import Divider from "../../util/Divider";
-import FormInput1 from "../FormikComponents/FormInputWithSelect";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useNavigate, useParams } from 'react-router-dom';
+import * as z from 'zod';
+import { toFormikValidationSchema } from 'zod-formik-adapter';
+import { FieldArray, Formik } from 'formik';
+import FormInput from '../FormikComponents/FormInput';
+import FormSelect from '../FormikComponents/FormSelect';
+import { api, getDepartments, getPackage, getProfile, getProfiles, getTest, getTests } from '../../Api';
+import NoteModal from '../NoteModal';
+import Autocomplete from '../Profile/autocomplete';
+import Test from '../Profile/TestandReferences';
+import ReferenceModal from '../Profile/ReferencesModal';
+import Divider from '../../util/Divider';
+import FormInput1 from '../FormikComponents/FormInputWithSelect';
 
 const FormSchema = z.object({
-  name: z.string().min(3, "Name must contain atleast 3 characters").max(50),
+  name: z.string().min(3, 'Name must contain atleast 3 characters').max(50),
   sampletype: z.string(),
   container: z.string(),
   samplesize: z.string(),
@@ -40,35 +32,35 @@ function AddPackage() {
   const [references, setReferences] = useState<any[]>([]);
   const [test, setTest] = useState<any>();
   const [loading, setLoading] = useState(false);
-  const [testIds, setTestIds] = useState<number[]>([]);
-  const [profileIds, setProfileIds] = useState<number[]>([]);
+  const [testIds, setTestIds] = useState<Test[]>([]);
+  const [profileIds, setProfileIds] = useState<Profile[]>([]);
   const [profiles, setProfiles] = useState<any[]>([]);
-  const [text, setText] = useState(packs?.note || "");
+  const [text, setText] = useState(packs?.note || '');
   const [open, setOpen] = useState(false);
   const [openreference, setOpenreference] = useState(false);
   const [referenceLoading, setReferenceLoading] = useState(false);
   const { id } = useParams();
 
   const createTest = async (name: string) => {
-    const res = await api.post("/test/add", {
+    const res = await api.post('/test/add', {
       testdata: {
         name: name,
-        testcode: name.toLowerCase().replace(/\s/g, ""),
+        testcode: name.toLowerCase().replace(/\s/g, ''),
       },
       referencedata: [],
     });
-    setTestIds([...testIds, res.data.data.id]);
+    setTestIds([...testIds, res.data.data]);
     fetchTests();
   };
 
   const createProfile = async (name: string) => {
-    const res = await api.post("/profile/add", {
+    const res = await api.post('/profile/add', {
       profiledata: {
         name: name,
       },
       tests: [],
     });
-    setProfileIds([...profileIds, res.data.data.id]);
+    setProfileIds([...profileIds, res.data.data]);
     fetchProfiles();
   };
 
@@ -104,15 +96,15 @@ function AddPackage() {
     setLoading(true);
     const data = await getPackage(id as string);
     setPackages(data.pack);
-    setTestIds(data.pack?.test.map((test: any) => test.id));
-    setProfileIds(data.pack?.profile.map((profile: any) => profile.id));
+    setTestIds(data.pack?.test);
+    setProfileIds(data.pack?.profile);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchTests();
     fetchProfiles();
-    if (id !== "add") {
+    if (id !== 'add') {
       fetchPackage();
     }
   }, []);
@@ -124,17 +116,17 @@ function AddPackage() {
   }, [test]);
 
   useEffect(() => {
-    setText(packs?.note || "");
+    setText(packs?.note || '');
   }, [packs]);
 
   const initialValues = {
-    name: packs?.name || "",
-    sampletype: packs?.sampletype || "",
-    container: packs?.container || "",
-    samplesize: packs?.samplesize || "",
-    sampleunit: packs?.sampleunit || "ml",
-    reportwithin: packs?.reportwithin || "",
-    reportwithinType: packs?.reportwithinType || "Days",
+    name: packs?.name || '',
+    sampletype: packs?.sampletype || '',
+    container: packs?.container || '',
+    samplesize: packs?.samplesize || '',
+    sampleunit: packs?.sampleunit || 'ml',
+    reportwithin: packs?.reportwithin || '',
+    reportwithinType: packs?.reportwithinType || 'Days',
     regularprice: packs?.regularprice || 0,
   };
 
@@ -186,7 +178,7 @@ function AddPackage() {
                   })
                   .then((res) => {
                     if (res.status === 200) {
-                      navigate("/package");
+                      navigate('/package');
                     }
                   })
                   .catch((err) => console.log(err));
@@ -194,14 +186,14 @@ function AddPackage() {
               }
 
               const res = await axios
-                .post("http://localhost:5000/package/add", {
+                .post('http://localhost:5000/package/add', {
                   packagedata,
                   tests: testIds,
                   profiles: profileIds,
                 })
                 .then((res) => {
                   if (res.status === 200) {
-                    navigate("/package");
+                    navigate('/package');
                   }
                 })
                 .catch((err) => console.log(err));
@@ -209,46 +201,30 @@ function AddPackage() {
             }}
           >
             {({ handleSubmit, isSubmitting, values, errors }) => {
-              console.log(errors, "errors");
+              console.log(errors, 'errors');
 
               return (
                 <form onSubmit={handleSubmit} className="px-2">
                   <div className="grid    md:grid-cols-3 sm:grid-cols-2 xs:grid-cols-1 lg:grid-cols-4 gap-x-9 gap-y-0 w-full">
-                    <FormInput
-                      name="name"
-                      label="Package Name"
-                      placeholder="Enter Package Name"
-                    />
+                    <FormInput name="name" label="Package Name" placeholder="Enter Package Name" />
                     {/* <FormInput name="profilecode" label="Role" placeholder="Role" /> */}
 
-                    <FormInput
-                      name="sampletype"
-                      label="Sample Type"
-                      placeholder="Enter the Sample Type"
-                    />
-                    <FormInput
-                      name="container"
-                      label="Container"
-                      placeholder="Enter the Container"
-                    />
+                    <FormInput name="sampletype" label="Sample Type" placeholder="Enter the Sample Type" />
+                    <FormInput name="container" label="Container" placeholder="Enter the Container" />
                     <FormInput1
                       name="samplesize"
                       label="Sample Size"
                       placeholder="Enter the Sample Size"
                       name1="sampleunit"
-                      options1={["ml", "mg"]}
+                      options1={['ml', 'mg']}
                     />
-                    <FormInput
-                      name="samplesize"
-                      label="Sample Size"
-                      placeholder="Enter the Sample Size"
-                    />
+                    <FormInput name="samplesize" label="Sample Size" placeholder="Enter the Sample Size" />
                     <FormInput1
                       name="reportwithin"
                       label="Report Within"
                       placeholder="Enter the Report Within"
                       name1="reportwithinType"
-                      options1={["Days", "Hours"]}
+                      options1={['Days', 'Hours']}
                     />
                     <FormInput
                       name="regularprice"
@@ -294,18 +270,10 @@ function AddPackage() {
                       <>
                         <Divider />
                         <div className="my-1">
-                          <p className="font-semibold text-md text-gray-600">
-                            Tests:
-                          </p>
-                          {tests
-                            .filter((t) => testIds.includes(t.id))
-                            .map((test) => (
-                              <Test
-                                handleOpen={handleClick}
-                                test={test}
-                                setTestIds={setTestIds}
-                              />
-                            ))}
+                          <p className="font-semibold text-md text-gray-600">Tests:</p>
+                          {testIds.map((test) => (
+                            <Test handleOpen={handleClick} test={test} setTestIds={setTestIds} />
+                          ))}
                         </div>
                       </>
                     )}
@@ -313,18 +281,14 @@ function AddPackage() {
                       <>
                         <Divider />
                         <div className="my-1">
-                          <p className="font-semibold text-md text-gray-600">
-                            Profiles:
-                          </p>
-                          {profiles
-                            .filter((t) => profileIds.includes(t.id))
-                            .map((profile) => (
-                              <Test
-                                // handleOpen={handleClick}
-                                test={profile}
-                                setTestIds={setProfileIds}
-                              />
-                            ))}
+                          <p className="font-semibold text-md text-gray-600">Profiles:</p>
+                          {profileIds.map((profile) => (
+                            <Test
+                              // handleOpen={handleClick}
+                              test={profile}
+                              setTestIds={setProfileIds}
+                            />
+                          ))}
                         </div>
                       </>
                     )}
@@ -334,11 +298,11 @@ function AddPackage() {
                     disabled={isSubmitting}
                     className={` ${
                       isSubmitting
-                        ? "bg-gray-200 hover:bg-gray-100 text-gray-500"
-                        : "bg-blue-500  hover:bg-blue-700  text-white"
+                        ? 'bg-gray-200 hover:bg-gray-100 text-gray-500'
+                        : 'bg-blue-500  hover:bg-blue-700  text-white'
                     } font-bold py-2 px-3 text-sm rounded my-3`}
                   >
-                    Add Package{" "}
+                    Add Package{' '}
                     {isSubmitting && (
                       <div
                         className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
@@ -361,12 +325,7 @@ function AddPackage() {
         loading={referenceLoading}
       />
 
-      <NoteModal
-        text={text}
-        setText={setText}
-        open={open}
-        handleClose={() => setOpen(false)}
-      />
+      <NoteModal text={text} setText={setText} open={open} handleClose={() => setOpen(false)} />
     </div>
   );
 }

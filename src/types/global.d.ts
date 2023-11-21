@@ -10,244 +10,288 @@ declare global {
     editor?: boolean;
   }
 
- interface User {
-  id: number;
-  username: string;
-  phonenumber: string;
-  password: string;
-  rolename: string;
-  roleId: number;
-  role: Role;
-}
+  interface User {
+    id: number;
+    username: string;
+    phonenumber: string | null;
+    password: string;
+    rolename: string;
+    roleId: number;
+    role: Role;
+  }
 
-interface Role {
-  id: number;
-  name: string;
-  previliges: Privilege[];
-  users: User[];
-}
+  interface Role {
+    id: number;
+    name: string;
+    previliges: Privilege[];
+    users: User[];
+  }
 
-interface Department {
-  id: number;
-  name: string;
-  doctor: string;
-  doctorSignature: string;
-  tests: Test[];
-}
+  interface Department {
+    id: number;
+    name: string;
+    doctor: string;
+    doctorSignature: string;
+    tests: Test[];
+  }
 
-interface Test {
-  id: number;
-  name: string;
-  testcode?: string | null;
-  departmentId?: number | null;
-  departmentName?: string | null;
-  sampletype?: string | null;
-  container?: string | null;
-  samplesize?: string | null;
-  sampleunit?: string | null;
-  reportwithin?: string | null;
-  reportwithinType?: string | null;
-  testmethodtype?: string | null;
-  regularprice: number;
-  note?: string | null;
-  profile: Profile[];
-  package: Package[];
-  referencesValues: Reference[];
-  pricelist: PriceList[];
-  department: Department | null;
-}
+  interface Test {
+    id: number;
+    name: string;
+    testcode: string | null;
+    departmentId: number | null;
+    departmentName: string | null;
+    sampletype: string | null;
+    container: string | null;
+    samplesize: string | null;
+    sampleunit: string | null;
+    reportwithin: string | null;
+    reportwithinType: string | null;
+    testmethodtype: string | null;
+    regularprice: number;
+    note: string | null;
+    orderTest: OrderTest[];
+    pricelist: PriceList[];
+    referencesValues: Reference[];
+    department: Department | null;
+    package: Package[];
+    profile: Profile[];
+    formulas: Formulas[];
+    headings: Headings[];
+  }
 
-interface Profile {
-  id: number;
-  name: string;
-  testcode?: string | null;
-  testnames?: string | null;
-  sampletype?: string | null;
-  sampleunit?: string | null;
-  container?: string | null;
-  samplesize?: string | null;
-  reportwithin?: string | null;
-  reportwithinType?: string | null;
-  regularprice: number;
-  note?: string | null;
-  test: Test[];
-  package: Package[];
-  pricelist: PriceList[];
-}
+  interface Profile {
+    id: number;
+    name: string;
+    testcode: string | null;
+    testnames: string | null;
+    sampletype: string | null;
+    sampleunit: string | null;
+    container: string | null;
+    samplesize: string | null;
+    reportwithin: string | null;
+    reportwithinType: string | null;
+    regularprice: number;
+    note: string | null;
+    pricelist: PriceList[];
+    package: Package[];
+    test: Test[];
+    formulas: Formulas[];
+    orderprofile: OrderProfile[];
+    headings: Headings[];
+  }
 
-interface Package {
-  id: number;
-  name: string;
-  sampletype?: string | null;
-  container?: string | null;
-  samplesize?: string | null;
-  sampleunit?: string | null;
-  reportwithin?: string | null;
-  reportwithinType?: string | null;
-  regularprice: number;
-  note?: string | null;
-  test: Test[];
-  profile: Profile[];
-  pricelist: PriceList[];
-}
+  interface Headings {
+    id: number;
+    heading: string;
+    tests: Test[];
+    profileId: number;
+    profile: Profile;
+  }
 
-interface PriceList {
-  id: number;
-  label: string;
-  price: number;
-  profileprice: number;
-  packageprice: number;
-  testId?: number | null;
-  test?: Test | null;
-  profileId?: number | null;
-  profile?: Profile | null;
-  packageId?: number | null;
-  package?: Package | null;
-}
+  interface Formulas {
+    id: number;
+    firsttest: string | null;
+    firstoperator: string | null;
+    secondtest: string | null;
+    secondoperator: string | null;
+    thirdtest: string | null;
+    profileId: number;
+    testId: number;
+    references: Reference[];
+    test: Test;
+    profile: Profile;
+  }
 
-interface Reference {
-  id: number;
-  gender: string;
-  minAge: number;
-  maxAge: number;
-  lowerValue: number;
-  upperValue: number;
-  unit: string;
-  testId: number;
-  test: Test;
-}
+  interface Package {
+    id: number;
+    name: string;
+    sampletype: string | null;
+    container: string | null;
+    samplesize: string | null;
+    sampleunit: string | null;
+    reportwithin: string | null;
+    reportwithinType: string | null;
+    regularprice: number;
+    note: string | null;
+    pricelist: PriceList[];
+    profile: Profile[];
+    test: Test[];
+  }
 
-interface RefLab {
-  id: number;
-  diagonsticname: string;
-  phonenumber: string;
-  emailId: string;
-  address?: string | null;
-  autoselectpricelist: string;
-  autoreportsendmode: string;
-  autoreporttype: boolean;
-  reporttype?: string | null;
-  customisedletterhead: boolean;
-  letterhead?: string | null;
-  orders: Order[];
-}
+  interface PriceList {
+    id: number;
+    label: string;
+    price: number;
+    profileprice: number;
+    packageprice: number;
+    testId: number | null;
+    profileId: number | null;
+    packageId: number | null;
+    package: Package | null;
+    profile: Profile | null;
+    test: Test | null;
+  }
 
-interface RefDoctor {
-  id: number;
-  doctorname: string;
-  specialisation?: string | null;
-  phonenumber: string;
-  emailId: string;
-  percentage: number;
-  autoselectpricelist: string;
-  autoreportsendmode: string;
-  autoreporttype: boolean;
-  reporttype?: string | null;
-  customisedletterhead: boolean;
-  letterhead?: string | null;
-  orders: Order[];
-}
+  interface Reference {
+    id: number;
+    gender: string;
+    minAge: number;
+    maxAge: number;
+    lowerValue: number;
+    upperValue: number;
+    unit: string;
+    note: string | null;
+    testId: number;
+    test: Test;
+    formulatestId: number | null;
+    formulatest: Formulas | null;
+  }
 
-interface Order {
-  id: number;
-  orderDate: Date;
-  patientId: number;
-  patient: Patient;
-  doctorId?: number | null;
-  doctor?: RefDoctor | null;
-  labId?: number | null;
-  lab?: RefLab | null;
-  tests: OrderTest[];
-  profiles: OrderProfile[];
-  packages: OrderPackage[];
-  totalamount: number;
-  discount: number;
-  discountType?: string | null;
-  netamount: number;
-  paymentmethod: string;
-  paidamount: number;
-  balanceamount: number;
-  remarks?: string | null;
-  bill?: string | null;
-  orderstatus: string;
-}
+  interface RefLab {
+    id: number;
+    diagonsticname: string;
+    phonenumber: string;
+    emailId: string;
+    address: string | null;
+    autoselectpricelist: string;
+    autoreportsendmode: string;
+    autoreporttype: boolean;
+    reporttype: string | null;
+    customisedletterhead: boolean;
+    letterhead: string | null;
+    orders: Order[];
+  }
 
-interface OrderProfile {
-  id: number;
-  orderId?: number | null;
-  packageId?: number | null;
-  name: string;
-  sampletype?: string | null;
-  samplesize?: string | null;
-  sampleunit?: string | null;
-  reportwithin?: string | null;
-  price?: number | null;
-  note?: string | null;
-  package?: OrderPackage | null;
-  tests: OrderTest[];
-  order?: Order | null;
-}
+  interface RefDoctor {
+    id: number;
+    doctorname: string;
+    specialisation: string | null;
+    phonenumber: string;
+    emailId: string;
+    percentage: number;
+    autoselectpricelist: string;
+    autoreportsendmode: string;
+    autoreporttype: boolean;
+    reporttype: string | null;
+    customisedletterhead: boolean;
+    letterhead: string | null;
+    orders: Order[];
+  }
 
-interface OrderPackage {
-  id: number;
-  orderId: number;
-  name: string;
-  sampletype?: string | null;
-  samplesize?: string | null;
-  sampleunit?: string | null;
-  reportwithin?: string | null;
-  price: number;
-  note?: string | null;
-  profiles: OrderProfile[];
-  tests: OrderTest[];
-  order: Order;
-}
+  interface Order {
+    id: number;
+    orderDate: Date;
+    patientId: number;
+    doctorId: number | null;
+    labId: number | null;
+    totalamount: number;
+    discount: number;
+    discountType: string | null;
+    netamount: number;
+    paymentmethod: string;
+    paidamount: number;
+    balanceamount: number;
+    remarks: string | null;
+    bill: string | null;
+    orderstatus: string;
+    collectiontime: Date | null;
+    processtime: Date | null;
+    reporttime: Date | null;
+    doctor: RefDoctor | null;
+    lab: RefLab | null;
+    patient: Patient;
+    packages: OrderPackage[];
+    profiles: OrderProfile[];
+    tests: OrderTest[];
+  }
 
-interface OrderTest {
-  id: number;
-  orderId?: number | null;
-  name: string;
-  sampletype?: string | null;
-  samplesize?: string | null;
-  sampleunit?: string | null;
-  reportwithin?: string | null;
-  testmethodtype?: string | null;
-  price: number;
-  note?: string | null;
-  highlight?: string | null;
-  heading?: string | null;
-  referenceValue?: number | null;
-  observedValue?: number | null;
-  profileId?: number | null;
-  profile?: OrderProfile | null;
-  packageId?: number | null;
-  package?: OrderPackage | null;
-  order?: Order | null;
-  testId: number;
-  test: Test;
-}
+  interface OrderTestHeadings {
+    id: number;
+    heading: string;
+    profileId: number;
+    tests: OrderTest[];
+    profile: OrderProfile;
+  }
 
-interface Patient {
-  id: number;
-  name: string;
-  nameprefix?: string | null;
-  identityNumber?: string | null;
-  identityType?: string | null;
-  gender: string;
-  phonenumber: string;
-  emailId: string;
-  age: number;
-  agesuffix?: string | null;
-  address?: string | null;
-  orders: Order[];
-}
+  interface OrderProfile {
+    id: number;
+    orderId: number | null;
+    packageId: number | null;
+    name: string;
+    sampletype: string | null;
+    samplesize: string | null;
+    sampleunit: string | null;
+    reportwithin: string | null;
+    price: number;
+    note: string | null;
+    profileId: number;
+    profile: Profile | null;
+    order: Order | null;
+    package: OrderPackage | null;
+    tests: OrderTest[];
+    headings: OrderTestHeadings[];
+  }
 
-interface Privilege {
-  id: number;
-  name: string;
-  roleId: number;
-  role: Role;
-}
+  interface OrderPackage {
+    id: number;
+    orderId: number | null;
+    name: string;
+    sampletype: string | null;
+    samplesize: string | null;
+    sampleunit: string | null;
+    reportwithin: string | null;
+    price: number;
+    note: string | null;
+    order: Order | null;
+    profiles: OrderProfile[];
+    tests: OrderTest[];
+  }
 
+  interface OrderTest {
+    id: number;
+    orderId: number | null;
+    name: string;
+    sampletype: string | null;
+    samplesize: string | null;
+    sampleunit: string | null;
+    reportwithin: string | null;
+    price: number;
+    note: string | null;
+    highlight: string | null;
+    observedValue: number | null;
+    bold: boolean;
+    testId: number;
+    profileId: number | null;
+    packageId: number | null;
+    testmethodtype: string | null;
+    headingId: number | null;
+    heading: OrderTestHeadings | null;
+    order: Order | null;
+    package: OrderPackage | null;
+    profile: OrderProfile | null;
+    test: Test;
+  }
 
+  interface Patient {
+    id: number;
+    name: string;
+    nameprefix?: string | null;
+    identityNumber?: string | null;
+    identityType?: string | null;
+    gender: string;
+    phonenumber: string;
+    emailId: string;
+    age: number;
+    agesuffix?: string | null;
+    address?: string | null;
+    orders: Order[];
+  }
+
+  interface Privilege {
+    id: number;
+    name: string;
+    roleId: number;
+    role: Role;
+  }
 }

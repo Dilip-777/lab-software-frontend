@@ -57,6 +57,21 @@ export default function Profiles() {
     fetchDepartments();
   }, []);
 
+  const options = [
+    {
+    label: "Edit",
+    onClick: (id?: number) => navigate(`/profile/${id}`),
+  },
+  {
+    label: "Delete",
+    onClick: (id?: number) => handleDelete(id as  number),
+  },
+  {
+    label: "Add Formula",
+    onClick: (id?: number) => navigate(`/profile/${id}?type=formulas`)
+  }
+  ]
+
   return (
     <div className="flex flex-col">
       <p className="text-right mx-5 my-5 font-medium text-sm">
@@ -97,7 +112,8 @@ export default function Profiles() {
                     profile.departmentId?.toString() === department) &&
                   profile.name.toLowerCase().includes(filter.toLowerCase())
               )}
-              path="profile"
+              // path="profile"
+              options={options}
               handleDelete={handleDelete}
             />
           </div>

@@ -1,31 +1,24 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom";
-import * as z from "zod";
-import { toFormikValidationSchema } from "zod-formik-adapter";
-import { Formik, FormikConsumer } from "formik";
-import FormInput from "../FormikComponents/FormInput";
-import FormSelect from "../FormikComponents/FormSelect";
-import {
-  api,
-  getPriceLists,
-  getRefDoctors,
-  getRefLab,
-  getRefLabs,
-  getTests,
-} from "../../Api";
-import Autocomplete from "../Profile/autocomplete";
-import Autocomplete1 from "../../util/Autocomplete";
-import Table from "./testTable";
-import FormInput1 from "../FormikComponents/FormInputWithSelect";
-import TextArea from "../FormikComponents/TextArea";
-import { Button } from "../../util/Buttons";
-import PatientAutocomplete from "../../util/Patientnameautocomplete";
-import { generatepdf } from "../../util/generatepdf";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useNavigate, useParams } from 'react-router-dom';
+import * as z from 'zod';
+import { toFormikValidationSchema } from 'zod-formik-adapter';
+import { Formik, FormikConsumer } from 'formik';
+import FormInput from '../FormikComponents/FormInput';
+import FormSelect from '../FormikComponents/FormSelect';
+import { api, getPriceLists, getRefDoctors, getRefLab, getRefLabs, getTests } from '../../Api';
+import Autocomplete from '../Profile/autocomplete';
+import Autocomplete1 from '../../util/Autocomplete';
+import Table from './testTable';
+import FormInput1 from '../FormikComponents/FormInputWithSelect';
+import TextArea from '../FormikComponents/TextArea';
+import { Button } from '../../util/Buttons';
+import PatientAutocomplete from '../../util/Patientnameautocomplete';
+import { generatepdf } from '../../util/generatepdf';
 
 const HeadCells: headcell[] = [
-  { id: "name", label: "Name" },
-  { id: "regularprice", label: "Price" },
+  { id: 'name', label: 'Name' },
+  { id: 'regularprice', label: 'Price' },
 ];
 
 const FormSchema = z.object({
@@ -50,12 +43,12 @@ const FormSchema = z.object({
   remarks: z.string().optional(),
 });
 
-function AddRefDoctor() {
+function PatientCreation() {
   const navigate = useNavigate();
   const [refdoctor, setrefdoctor] = useState<any>();
   const [loading, setLoading] = useState(false);
   const [priceList, setPriceList] = useState<any[]>([]);
-  const [reflab, setreflab] = useState<any | undefined>(undefined);
+  const [reflab, setreflab] = useState<RefLab | undefined>(undefined);
   const [tests, setTests] = useState<any[]>([]);
   const [tests1, setTests1] = useState<any[]>([]);
   const [selectedTests, setSelectedTests] = useState<any[]>([]);
@@ -65,21 +58,22 @@ function AddRefDoctor() {
   const [printBill, setPrintBill] = useState(false);
   const [patients, setPatients] = useState<any[]>([]);
   const [patient, setPatient] = useState<any>();
+  const [order, setOrder] = useState<Order | undefined>(undefined);
 
   const fetchPriceList = async () => {
-    const data = await api.get("/pricelist/labels");
+    const data = await api.get('/pricelist/labels');
     setPriceList(data.data.data);
   };
 
   const fetchRefLabs = async () => {
+    setLoading(true);
     const data = await getRefLabs();
     setRefLabs(data);
   };
 
   const fetchTests = async () => {
-    const res = await api.get("/test/getpackagespricelist");
-    const data = await getPriceLists("Test");
-    // console.log(data, "data");
+    const res = await api.get('/test/getpackagespricelist');
+    const data = await getPriceLists('Test');
 
     setTests1(data?.tests || []);
     setTests(res.data?.data || []);
@@ -91,8 +85,23 @@ function AddRefDoctor() {
   };
 
   const fetchPatients = async () => {
-    const res = await api.get("/patient/getPatients");
+    const res = await api.get('/patient/getPatients');
     setPatients(res.data?.data || []);
+  };
+
+  const fetchOrder = async () => {
+    const res = await api.get('/order/getOrder/' + id);
+    setOrder(res.data?.data);
+    setPatient(res.data?.data?.patient);
+    setreflab(res.data?.data?.lab);
+    setrefdoctor(res.data?.data?.doctor);
+
+    const testnames = res.data?.data?.tests.map((t: any) => t.name);
+    const packagenames = res.data?.data?.packages.map((t: any) => t.name);
+    const profilenames = res.data?.data?.profiles.map((t: any) => t.name);
+
+    setSelectedTests(tests.filter((t) => [...testnames, ...profilenames, ...packagenames].includes(t.name)));
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -100,55 +109,46 @@ function AddRefDoctor() {
     fetchRefDoctors();
     fetchTests();
     fetchPatients();
-  }, []);
-
-  const fetchRefLab = async () => {
-    if (id !== "add") {
-      setLoading(true);
-      const data = await getRefLab(id as string);
-      setrefdoctor(data);
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchRefLab();
     fetchPriceList();
   }, []);
 
+  useEffect(() => {
+    if (id !== 'add') {
+      fetchOrder();
+    } else {
+      setLoading(false);
+    }
+  }, [tests, reflabs, refdoctors]);
+
   const initialValues = {
-    name: "",
-    nameprefix: "Mr.",
-    identityType: "Aadhar",
-    identityNumber: "",
-    gender: "",
-    phonenumber: "",
-    emailId: "",
-    age: "",
-    agesuffix: "Years",
-    address: "",
-    pricelist: "",
-    totalamount: 0,
-    discount: 0,
-    discountType: "Percentage",
-    netamount: 0,
-    paymentmethod: "",
-    paidamount: 0,
-    balanceamount: 0,
-    remarks: "",
+    name: order?.patient.name || '',
+    nameprefix: order?.patient.nameprefix || 'Mr.',
+    identityType: order?.patient.identityType || 'Aadhar',
+    identityNumber: order?.patient.identityNumber || '',
+    gender: '',
+    phonenumber: order?.patient.phonenumber || '',
+    emailId: order?.patient.emailId || '',
+    age: order?.patient.age || '',
+    agesuffix: order?.patient.agesuffix || 'Years',
+    address: order?.patient.address || '',
+    pricelist: '',
+    totalamount: order?.totalamount || 0,
+    discount: order?.discount || 0,
+    discountType: order?.discountType || 'Percentage',
+    netamount: order?.netamount || 0,
+    paymentmethod: order?.paymentmethod || '',
+    paidamount: order?.paidamount || 0,
+    balanceamount: order?.balanceamount || 0,
+    remarks: order?.remarks || '',
   };
 
   const getTotalAmount = (pricelist: string) => {
     let totalamount = 0;
     selectedTests.forEach((test) => {
-      totalamount += pricelist
-        ? test.pricelist.find((p: any) => p.label === pricelist)?.price || 0
-        : test.regularprice;
+      totalamount += pricelist ? test.pricelist.find((p: any) => p.label === pricelist)?.price || 0 : test.regularprice;
     });
     return totalamount;
   };
-
-  console.log(selectedTests, "selectedtests");
 
   return (
     <div className="p-5 w-full ">
@@ -173,7 +173,7 @@ function AddRefDoctor() {
         </div>
       ) : (
         <div className=" pt-5 pb-[5rem] px-8 rounded-md h-full w-full bg-white shadow-md">
-          <p className="text-lg m-2">Add Patient</p>
+          <p className="text-lg m-2">{order ? 'Edit Order' : 'Add Patient'}</p>
           <div className=" border-[1px] border-t border-gray-500 w-full my-3"></div>
           <Formik
             initialValues={initialValues}
@@ -182,78 +182,68 @@ function AddRefDoctor() {
               setSubmitting(true);
               const tests = selectedTests.map((test) => ({
                 ...test,
-                price:
-                  test.pricelist.find((p: any) => p.label === values.pricelist)
-                    ?.price || 0,
+                price: test.pricelist.find((p: any) => p.label === values.pricelist)?.price || 0,
               }));
 
-              console.log(selectedTests, "selectedTests");
+              console.log(selectedTests, 'selectedTests');
 
-              const discount =
-                values.discountType === "Percentage" ? " %" : " ₹";
+              const discount = values.discountType === 'Percentage' ? ' %' : ' ₹';
 
-              // const bill = await generatepdf({
-              //   tests,
-              //   patient: values,
-              //   reflab: reflab?.diagonsticname,
-              //   refdoctor: refdoctor?.doctorname,
-              //   totalamount: values.totalamount,
-              //   paidamount: values.paidamount,
-              //   discount: values.discount,
-              //   discountType: discount,
-              //   paymentmethod: values.paymentmethod,
-              // });
+              const bloburl = await generatepdf({
+                tests,
+                patient: values,
+                reflab: reflab?.diagonsticname,
+                refdoctor: refdoctor?.doctorname,
+                totalamount: values.totalamount,
+                paidamount: values.paidamount,
+                discount: values.discount,
+                discountType: discount,
+                paymentmethod: values.paymentmethod,
+              });
 
               const packages = selectedTests.filter((s) => s.profile);
-              const profiles = selectedTests.filter(
-                (s) => !s.profile && s.test
-              );
+              const profiles = selectedTests.filter((s) => !s.profile && s.test);
               const test = selectedTests.filter((s) => !s.profile && !s.test);
               const body = {
                 ...values,
+                orderId: order?.id || null,
                 doctorId: refdoctor?.id || null,
                 labId: reflab?.id || null,
                 orderDate: new Date().toISOString(),
                 patient: patient,
                 packages,
-                profiles: profiles,
+                profiles: profiles.map((p) => ({ ...p, profileId: p.id })),
                 tests: test,
                 // bill,
               };
 
               try {
-                const patient = await api.post("/patient/add", body);
-                // await api.post("/order/testing", body);
-                // if (!printBill) {
-                //   const a = document.createElement("a");
-                //   a.href = `http:localhost:5000/uploadedFiles/${bill}`;
-                //   a.target = "_blank";
-                //   a.click();
-                // }
+                const patient = await api.post('/patient/add', body);
+                // await api.post('/order/testing', body);
+                if (!printBill) {
+                  const a = document.createElement('a');
+                  a.href = bloburl || '';
+                  a.target = '_blank';
+                  a.click();
+                }
                 window.location.reload();
               } catch (error) {
                 console.log(error);
               }
 
-              console.log(values, "values");
+              console.log(values, 'values');
 
               setSubmitting(false);
             }}
           >
-            {({
-              handleSubmit,
-              isSubmitting,
-              errors,
-              values,
-              setFieldValue,
-            }) => {
-              console.log(errors, "errors");
+            {({ handleSubmit, isSubmitting, errors, values, setFieldValue }) => {
+              console.log(errors, 'errors');
 
-              if (values.nameprefix === "Ms." && values.gender !== "Female") {
-                setFieldValue("gender", "Female");
+              if ((values.nameprefix === 'Ms.' || values.nameprefix === 'Mrs.') && values.gender !== 'Female') {
+                setFieldValue('gender', 'Female');
               }
-              if (values.nameprefix === "Mr." && values.gender !== "Male") {
-                setFieldValue("gender", "Male");
+              if (values.nameprefix === 'Mr.' && values.gender !== 'Male') {
+                setFieldValue('gender', 'Male');
               }
 
               if (values.pricelist) {
@@ -263,81 +253,58 @@ function AddRefDoctor() {
                 reflab &&
                 reflab?.emailId !== values.emailId &&
                 reflab?.address !== values.address &&
-                reflab?.autoselectpricelist !== values.pricelist
+                reflab.phonenumber !== values.phonenumber
               ) {
-                setFieldValue("emailId", reflab?.emailId);
-                setFieldValue("address", reflab?.address);
-                setFieldValue("pricelist", reflab?.autoselectpricelist);
+                setFieldValue('emailId', reflab?.emailId);
+                setFieldValue('address', reflab?.address);
+                setFieldValue('phonenumber', reflab?.phonenumber);
               }
 
-              if (
-                refdoctor &&
-                refdoctor?.emailId !== values.emailId &&
-                refdoctor?.autoselectpricelist !== values.pricelist
-              ) {
-                setFieldValue("emailId", refdoctor?.emailId);
-                setFieldValue("pricelist", refdoctor?.autoselectpricelist);
+              if (!refdoctor && reflab && reflab?.autoselectpricelist !== values.pricelist) {
+                setFieldValue('pricelist', reflab?.autoselectpricelist);
+              }
+
+              if (refdoctor && refdoctor?.autoselectpricelist !== values.pricelist) {
+                setFieldValue('pricelist', refdoctor?.autoselectpricelist);
               }
 
               if (values.totalamount !== getTotalAmount(values.pricelist)) {
-                setFieldValue("totalamount", getTotalAmount(values.pricelist));
+                setFieldValue('totalamount', getTotalAmount(values.pricelist));
               }
 
-              if (values.discountType === "Percentage") {
-                if (
-                  values.netamount !==
-                  values.totalamount -
-                    (values.totalamount * values.discount) / 100
-                ) {
-                  setFieldValue(
-                    "netamount",
-                    values.totalamount -
-                      (values.totalamount * values.discount) / 100
-                  );
+              if (values.discountType === 'Percentage') {
+                if (values.netamount !== values.totalamount - (values.totalamount * values.discount) / 100) {
+                  setFieldValue('netamount', values.totalamount - (values.totalamount * values.discount) / 100);
                 }
               }
 
-              if (values.discountType === "Amount") {
+              if (values.discountType === 'Amount') {
                 if (values.netamount !== values.totalamount - values.discount) {
-                  setFieldValue(
-                    "netamount",
-                    values.totalamount - values.discount
-                  );
+                  setFieldValue('netamount', values.totalamount - values.discount);
                 }
               }
 
-              if (
-                values.balanceamount !==
-                values.netamount - values.paidamount
-              ) {
-                setFieldValue(
-                  "balanceamount",
-                  values.netamount - values.paidamount
-                );
+              if (values.balanceamount !== values.netamount - values.paidamount) {
+                setFieldValue('balanceamount', values.netamount - values.paidamount);
               }
+
+              console.log(values, 'values', values.name, 'name');
 
               if (patient) {
-                if (patient.nameprefix !== values.nameprefix)
-                  setFieldValue("nameprefix", patient.nameprefix);
-                if (patient.name !== values.name)
-                  setFieldValue("name", patient.name);
-                if (patient.age !== values.age)
-                  setFieldValue("age", patient.age);
-                if (patient.agesuffix !== values.agesuffix)
-                  setFieldValue("agesuffix", patient.agesuffix);
-                if (patient.gender !== values.gender)
-                  setFieldValue("gender", patient.gender);
-                if (patient.phonenumber !== values.phonenumber)
-                  setFieldValue("phonenumber", patient.phonenumber);
+                if (patient.nameprefix !== values.nameprefix) setFieldValue('nameprefix', patient.nameprefix);
+                if (patient.name !== values.name) setFieldValue('name', patient.name);
+                if (patient.age !== values.age) setFieldValue('age', patient.age);
+                if (patient.agesuffix !== values.agesuffix) setFieldValue('agesuffix', patient.agesuffix);
+                if (patient.gender !== values.gender) setFieldValue('gender', patient.gender);
+                if (!reflab) {
+                  if (patient.phonenumber !== values.phonenumber) setFieldValue('phonenumber', patient.phonenumber);
+                }
                 if (patient.identityNumber !== values.identityNumber)
-                  setFieldValue("identityNumber", patient.identityNumber);
-                if (patient.identityType !== values.identityType)
-                  setFieldValue("identityType", patient.identityType);
+                  setFieldValue('identityNumber', patient.identityNumber);
+                if (patient.identityType !== values.identityType) setFieldValue('identityType', patient.identityType);
                 // if(patient.emailId !== values.emailId) setFieldValue("emailId", patient.emailId)
                 // if(patient.address !== values.address) setFieldValue("address", patient.address)
               }
-
-              console.log(errors);
 
               return (
                 <form onSubmit={handleSubmit} className="px-2">
@@ -367,7 +334,7 @@ function AddRefDoctor() {
                       setFieldValue={setFieldValue}
                       value={values.name}
                       name1="nameprefix"
-                      options1={["Mr.", "Mrs.", "Ms."]}
+                      options1={['Mr.', 'Mrs.', 'Ms.']}
                       name="name"
                     />
 
@@ -379,7 +346,7 @@ function AddRefDoctor() {
                         type="number"
                         className="!w-[100%] !min-w-0"
                         classname="col-span-1"
-                        options1={["Years", "Months", "Days"]}
+                        options1={['Years', 'Months', 'Days']}
                         name1="agesuffix"
                       />
                       <FormSelect
@@ -387,9 +354,9 @@ function AddRefDoctor() {
                         label="Gender"
                         placeholder="Select Gender"
                         options={[
-                          { value: "Male", label: "Male" },
-                          { value: "Female", label: "Female" },
-                          { value: "Other", label: "Other" },
+                          { value: 'Male', label: 'Male' },
+                          { value: 'Female', label: 'Female' },
+                          { value: 'Other', label: 'Other' },
                         ]}
                         className="!w-[100%] !min-w-[0px]"
                         classname="col-span-1"
@@ -403,7 +370,7 @@ function AddRefDoctor() {
                       classname="col-span-2"
                       className="!w-full "
                       name1="identityType"
-                      options={["Aadhar", "Pan", "Other"]}
+                      options={['Aadhar', 'Pan', 'Other']}
                     />
                     <div className="grid grid-cols-2 gap-x-10 col-span-4">
                       {/* <FormInput
@@ -425,16 +392,10 @@ function AddRefDoctor() {
                         type="number"
                         name="phonenumber"
                       />
-                      <FormInput
-                        name="emailId"
-                        label="Email Id"
-                        placeholder="Enter Email Id"
-                        classname="col-span-1"
-                      />
+                      <FormInput name="emailId" label="Email Id" placeholder="Enter Email Id" classname="col-span-1" />
                       <Autocomplete1
                         item={reflab}
                         handleChange={(v) => {
-                          setrefdoctor(undefined);
                           setreflab(v);
                         }}
                         label="Ref Lab"
@@ -446,7 +407,6 @@ function AddRefDoctor() {
                         item={refdoctor}
                         handleChange={(v) => {
                           setrefdoctor(v);
-                          setreflab(undefined);
                         }}
                         label="Ref Doctor"
                         placeholder="Select Ref Doctor"
@@ -526,9 +486,7 @@ function AddRefDoctor() {
                         headcells={HeadCells}
                         rows={selectedTests}
                         handleDelete={(name) => {
-                          setSelectedTests((prev) =>
-                            prev.filter((item) => item.name !== name)
-                          );
+                          setSelectedTests((prev) => prev.filter((item) => item.name !== name));
                         }}
                         pricelist={values.pricelist}
                       />
@@ -555,8 +513,8 @@ function AddRefDoctor() {
                         label="Discount Type"
                         placeholder="Select Discount Type"
                         options={[
-                          { value: "Percentage", label: "Percentage" },
-                          { value: "Amount", label: "Amount" },
+                          { value: 'Percentage', label: 'Percentage' },
+                          { value: 'Amount', label: 'Amount' },
                         ]}
                         className="!min-w-0 !w-[9rem] !ml-0"
                       />
@@ -573,9 +531,9 @@ function AddRefDoctor() {
                       label="Payment Mode"
                       placeholder="Select Payment Mode"
                       options={[
-                        { value: "Cash", label: "Cash" },
-                        { value: "Card", label: "Card" },
-                        { value: "Cheque", label: "Cheque" },
+                        { value: 'Cash', label: 'Cash' },
+                        { value: 'Card', label: 'Card' },
+                        { value: 'Cheque', label: 'Cheque' },
                       ]}
                       className="!min-w-0 !w-[9rem]"
                     />
@@ -610,8 +568,7 @@ function AddRefDoctor() {
                       className="h-6 w-6"
                     />
                     <label htmlFor="print" className="ml-2">
-                      Continue without opening Generated Bill ( Please Uncheck
-                      if you want to open the Generated Bill)
+                      Continue without opening Generated Bill ( Please Uncheck if you want to open the Generated Bill)
                     </label>
                   </div>
                   <button
@@ -619,11 +576,11 @@ function AddRefDoctor() {
                     disabled={isSubmitting}
                     className={` ${
                       isSubmitting
-                        ? "bg-gray-200 hover:bg-gray-100 text-gray-500"
-                        : "bg-green-600  hover:bg-green-700  text-white"
+                        ? 'bg-gray-200 hover:bg-gray-100 text-gray-500'
+                        : 'bg-green-600  hover:bg-green-700  text-white'
                     } font-bold py-2 px-3 float-right text-sm rounded my-3`}
                   >
-                    Submit{" "}
+                    Submit{' '}
                     {isSubmitting && (
                       <div
                         className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
@@ -641,4 +598,4 @@ function AddRefDoctor() {
   );
 }
 
-export default AddRefDoctor;
+export default PatientCreation;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, SetStateAction } from "react";
+import React, { useState, useEffect } from "react";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 
 import { getTest } from "../../Api";
@@ -7,10 +7,12 @@ function Test({
   test,
   handleOpen,
   setTestIds,
+  handleDelete,
 }: {
   test: any;
   handleOpen?: (id: any) => void;
   setTestIds: React.Dispatch<React.SetStateAction<any[]>>;
+  handleDelete?: (test: Test) => void;
 }) {
   const [references, setReferences] = useState<any[]>([]);
   const fetchReferences = async () => {
@@ -20,8 +22,6 @@ function Test({
   useEffect(() => {
     fetchReferences();
   }, []);
-
-  console.log(test, "tests");
 
   return (
     <div className="my-3">
@@ -40,14 +40,18 @@ function Test({
             </button>
           )}
         </div>
-        <div className="w-8 h-2 ">
+        <div className="w-8 h-8 p-1 hover:bg-red-50 rounded-full">
           <XMarkIcon
             fontSize="10px"
             color="red"
-            className="text-red text-sm cursor-pointer"
-            onClick={() =>
-              setTestIds((prev) => prev.filter((p) => p.id !== test.id))
-            }
+            className="cursor-pointer"
+            onClick={() => {
+              if (handleDelete) {
+                handleDelete(test);
+              } else {
+                setTestIds((prev) => prev.filter((p) => p.id !== test.id));
+              }
+            }}
           />
         </div>
       </div>

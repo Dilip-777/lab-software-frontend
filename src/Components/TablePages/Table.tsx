@@ -1,5 +1,6 @@
 import React from "react";
 import TextEditor from "./TextEditor";
+import TableMenu from "./Menu";
 
 interface Props {
   headcells: headcell[];
@@ -9,6 +10,7 @@ interface Props {
   handleChange?: (value: number, testId: number, field: string) => void;
   discard?: boolean;
   setDiscard?: React.Dispatch<React.SetStateAction<boolean>>;
+  options?: { label: string; onClick: (id?: number) => void }[];
 }
 
 function Table({
@@ -19,12 +21,13 @@ function Table({
   handleChange,
   discard,
   setDiscard,
+  options,
 }: Props) {
   console.log(headcells, "headcells");
 
   return (
     <div className="overflow-hidden border rounded-lg">
-      <table className="min-w-full divide-y divide-gray-200">
+      <table className="min-w-full divide-y divide-gray-200 ">
         <thead className="bg-gray-50">
           <tr className="bg-[#e0e0e0] py-3 h-[4rem]">
             <th
@@ -54,6 +57,13 @@ function Table({
                 Actions
               </th>
             )}
+            {options && (
+              <th
+                scope="col"
+                align="center"
+                className="px-6 py-3 text-xs font-bold text-center text-gray-700 uppercase "
+              ></th>
+            )}
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
@@ -81,7 +91,7 @@ function Table({
                 ) : (
                   <td
                     key={headcell.id}
-                    className="px-6 py-2 text-sm text-gray-800 whitespace-nowrap"
+                    className="px-6 py-2 text-sm text-gray-800 "
                   >
                     {gettablecell({ row: row, headcell: headcell })}
                   </td>
@@ -89,7 +99,7 @@ function Table({
               )}
               {path && (
                 <>
-                  <td className="px-6 py-4 text-sm font-medium text-center whitespace-nowrap">
+                  <td className="px-6 py-2 text-sm font-medium text-center whitespace-nowrap">
                     <a
                       className="text-green-500 hover:text-green-700"
                       href={`/${path}/${row.id}`}
@@ -99,13 +109,18 @@ function Table({
                   </td>
                   <td
                     onClick={() => handleDelete && handleDelete(row.id)}
-                    className="px-6 py-4 text-sm font-medium text-center whitespace-nowrap"
+                    className="px-6 py-2 text-sm font-medium text-center whitespace-nowrap"
                   >
                     <a className="text-red-500 cursor-pointer hover:text-red-700">
                       Delete
                     </a>
                   </td>
                 </>
+              )}
+              {options && (
+                <td className="px-6 py-1 text-sm font-medium text-center whitespace-nowrap">
+                  <TableMenu options={options} id={row.id} />
+                </td>
               )}
               {/* <td className="px-6 py-4 text-sm font-medium text-center whitespace-nowrap">
                 <a

@@ -1,26 +1,35 @@
-import { api } from "../Api";
+import { api } from '../Api';
 
 interface Props {
-    tests: any[];
-    totalamount: number;
-    paidamount: number;
-    discount: number;
-    discountType: string;
-    reflab: any;
-    refdoctor: any;
-    patient: any;
-    paymentmethod: string;
-
+  tests: any[];
+  totalamount: number;
+  paidamount: number;
+  discount: number;
+  discountType: string;
+  reflab: any;
+  refdoctor: any;
+  patient: any;
+  paymentmethod: string;
 }
 
-export const generatepdf = async ({tests, totalamount, paidamount, discount, discountType,patient , reflab , refdoctor, paymentmethod}: Props) => {
-    // console.log(discountType, discount, discount.toString() + discountType === "Percentage" ? "%" : "Rs" , "hjgjgjfghfghfjjhgjhgjhgjg");
-    
-    try {
-      const response = await api.post(
-        "/generatepdf",
-        {
-          html: `  <div style="font-size: 12px; position: relative; padding: 9px; background-image: url('http://localhost:5000/images/bgimage.png');background-size: contain; max-width: 100%; background-repeat: no-repeat; padding-bottom: 2rem; padding-left: 2rem; padding-right: 2rem;">
+export const generatepdf = async ({
+  tests,
+  totalamount,
+  paidamount,
+  discount,
+  discountType,
+  patient,
+  reflab,
+  refdoctor,
+  paymentmethod,
+}: Props) => {
+  // console.log(discountType, discount, discount.toString() + discountType === "Percentage" ? "%" : "Rs" , "hjgjgjfghfghfjjhgjhgjhgjg");
+
+  try {
+    const response = await api.post(
+      '/generatepdf',
+      {
+        html: `  <div style="font-size: 12px; position: relative; padding: 9px; background-image: url('http://localhost:5000/images/bgimage.png');background-size: contain; max-width: 100%; background-repeat: no-repeat; padding-bottom: 2rem; padding-left: 2rem; padding-right: 2rem;">
         <div style="margin-top: 1rem; ">
     
             <h4 style="margin-bottom: 3px; text-align:right; font-weight: bold; ">Bill Of Supply / Tax Invoice</h4>
@@ -29,11 +38,11 @@ export const generatepdf = async ({tests, totalamount, paidamount, discount, dis
                 <div style="display: flex; flex-direction: column;">
                     <div style="display: flex; margin: 1px;">
                         <div style="min-width: 6rem;"><strong>Name:</strong></div>
-                        <div>${ patient.nameprefix + patient?.name}</div>
+                        <div>${patient.nameprefix + patient?.name}</div>
                     </div>
                     <div style="display: flex; margin: 1px;">
                         <div style="min-width: 6rem;"><strong>Age/Gender:</strong></div>
-                        <div>${patient.age + " " + patient.agesuffix + " " + patient.gender}</div>
+                        <div>${patient.age + ' ' + patient.agesuffix + ' ' + patient.gender}</div>
                     </div>
                     <div style="display: flex; margin: 1px;">
                         <div style="min-width: 6rem;"><strong>Contact No:</strong></div>
@@ -63,7 +72,7 @@ export const generatepdf = async ({tests, totalamount, paidamount, discount, dis
                     </div>
                     <div style="display: flex; margin: 1px;">
                         <div style="min-width: 6rem;"><strong>Referred By:</strong></div>
-                        <div>${(reflab || refdoctor)}</div>
+                        <div>${reflab || refdoctor}</div>
                     </div>
                     <div style="display: flex; margin: 1px;">
                         <div style="min-width: 6rem;"><strong>Visit No:</strong></div>
@@ -91,16 +100,15 @@ export const generatepdf = async ({tests, totalamount, paidamount, discount, dis
                     </tr>
                 </thead>
                 <tbody>
-                  ${
-                    tests.map((test, index) => (
-                       `<tr>
+                  ${tests.map(
+                    (test, index) =>
+                      `<tr>
                         <td style="padding: 0.5rem;">${index + 1}</td>
-                        <td style="padding: 0.5rem; text-align: left;">${test.testcode || "-"}</td>
+                        <td style="padding: 0.5rem; text-align: left;">${test.testcode || '-'}</td>
                         <td style="padding: 0.5rem; text-align: left;">${test.name}</td>
                         <td style="padding: 0.5rem; text-align: center;">${test.price}</td>
-                    </tr>` 
-                    ))
-                  }
+                    </tr>`
+                  )}
                     
                 </tbody>
             </table>
@@ -114,7 +122,9 @@ export const generatepdf = async ({tests, totalamount, paidamount, discount, dis
                         <td style="padding-left: 0.5rem; font-weight: bold; text-align: left;">Amount</td>
                     </tr>
                     <tr>
-                        <td style="text-align: left; padding-left: 0.5rem">${new Date().toLocaleDateString('en-GB')}</td>
+                        <td style="text-align: left; padding-left: 0.5rem">${new Date().toLocaleDateString(
+                          'en-GB'
+                        )}</td>
                         <td style="text-align: left; padding-left: 0.5rem">${paymentmethod}</td>
                         <td style="text-align: left; padding-left: 0.5rem">${paidamount}</td>
                     </tr>
@@ -128,7 +138,7 @@ export const generatepdf = async ({tests, totalamount, paidamount, discount, dis
                     </tr>
                     <tr>
                         <td style=" font-weight: bold;">Discount Amount:</td>
-                        <td style=" text-align: center;">${discount.toString() +  discountType }</td>
+                        <td style=" text-align: center;">${discount.toString() + discountType}</td>
                     </tr>
                     <tr>
                         <td style=" font-weight: bold;">Total Paid Amount:</td>
@@ -144,41 +154,39 @@ export const generatepdf = async ({tests, totalamount, paidamount, discount, dis
             <strong>1800 103 2292</strong></p>
         
     </div>`,
-        },
-        {
-          responseType: "blob", // Tell axios to expect a binary response (PDF)
-        }
-      );
+      },
+      {
+        responseType: 'blob', // Tell axios to expect a binary response (PDF)
+      }
+    );
 
-      const pdfFile = new File([response.data], "Bill.pdf", { type: "application/pdf" });
+    const pdfFile = new File([response.data], 'Bill.pdf', { type: 'application/pdf' });
 
-      const formData = new FormData();
+    const formData = new FormData();
 
-    formData.append("file", pdfFile);
+    formData.append('file', pdfFile);
 
-       const config = {
+    const config = {
       headers: {
-        "Content-Type": "multipart/form-data",
+        'Content-Type': 'multipart/form-data',
       },
     };
 
-    const res = await api.post("/upload", formData, config);
+    // const res = await api.post('/upload', formData, config);
 
-   return res.data.data[0].filename
-    
+    const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
 
-    //   const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+    const pdfUrl = URL.createObjectURL(pdfBlob);
 
-    //   const pdfUrl = URL.createObjectURL(pdfBlob);
+    // const downloadLink = document.createElement('a');
+    // downloadLink.href = pdfUrl;
+    // downloadLink.download = 'generated_table.pdf';
+    // downloadLink.click();
 
-    //   const downloadLink = document.createElement("a");
-    //   downloadLink.href = pdfUrl;
-    //   downloadLink.download = "generated_table.pdf";
-    //   downloadLink.click();
-
-    //   URL.revokeObjectURL(pdfUrl);
-    } catch (error) {
-      console.error(error);
-      // Handle error
-    }
-  };
+    // URL.revokeObjectURL(pdfUrl);
+    return pdfUrl;
+  } catch (error) {
+    console.error(error);
+    // Handle error
+  }
+};

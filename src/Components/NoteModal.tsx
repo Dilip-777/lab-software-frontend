@@ -1,10 +1,8 @@
 import { Dialog, Transition } from "@headlessui/react";
-import { Fragment, useState, useEffect, useRef } from "react";
-import JoditEditor from "jodit-react";
-import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { Fragment, useState, useEffect } from "react";
 import "./style.css";
 import beautify from "js-beautify";
+import { Editor } from "@tinymce/tinymce-react";
 
 export default function MyModal({
   open,
@@ -28,15 +26,28 @@ export default function MyModal({
 
   useEffect(() => {
     const cleanedData = storedText
-      .replace(/&nbsp;/g, " ")
+      .replace(/&nbsp;/g, "")
       .replace(/&amp;nb/g, "");
     const beautified = beautify.html(cleanedData, {
       indent_size: 2,
     });
-    console.log(beautified, "beautified");
-    setText(beautified);
-    console.log(beautified.length, "beautified.length");
+    setText(cleanedData);
   }, [storedText]);
+
+  const handleUpdate = (value: string, editor: any) => {
+    setStoredText(value);
+  };
+
+  const charCount = (editor: any) =>
+    editor.getContent({ format: "text" }).length;
+
+  const handleBeforeAddUndo = (evt: any, editor: any) => {
+    // note that this is the opposite test as in handleUpdate
+    // because we are determining when to deny adding an undo level
+    if (charCount(editor) > 3000) {
+      evt.preventDefault();
+    }
+  };
 
   return (
     <Transition appear show={open} as={Fragment}>
@@ -90,7 +101,7 @@ export default function MyModal({
                 >
                   Print Note
                 </Dialog.Title>
-                <div className="max-h-[23rem] overflow-auto">
+                <div className="max-h-[25rem] overflow-auto">
                   {/* <ReactQuill
                     style={{ height: "10rem" }}
                     value={storedText}
@@ -104,13 +115,16 @@ export default function MyModal({
                     onChange={setStoredText}
                     config={{ removeButtons: ["fullsize"] }}
                   /> */}
-                  <CKEditor
-                    editor={ClassicEditor}
-                    data={storedText}
-                    onChange={(event, editor) => {
-                      const data = editor.getData();
-                      setStoredText(data);
+                  <Editor
+                    //  onChange={(e) => setText(e.target.getContent())}
+                    apiKey="ighr8667og4sgiktdhjy97i5vkwlgrjbwai7ip2tg478qc3b"
+                    //  onInit={(evt, editor) => editorRef.current = editor}
+                    value={storedText}
+                    init={{
+                      plugins: "table wordcount",
                     }}
+                    onEditorChange={handleUpdate}
+                    onBeforeAddUndo={handleBeforeAddUndo}
                   />
                 </div>
               </Dialog.Panel>

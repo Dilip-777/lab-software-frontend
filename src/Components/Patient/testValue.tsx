@@ -1,6 +1,5 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Combobox, Transition } from "@headlessui/react";
-import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 
 interface Props {
   test: OrderTest;
@@ -8,29 +7,49 @@ interface Props {
   input: boolean;
   handleChange: (value: any, id: number, field: string) => void;
   focus: boolean;
+  changes?: any[];
+  handleFormula?: (profile: OrderProfile, test: OrderTest) => void;
+  profile?: OrderProfile;
 }
 
 export default function TestValue({
   test,
+  changes = [],
   patient,
   input,
   handleChange,
   focus,
+  handleFormula,
+  profile,
 }: Props) {
-  console.log(test, "test");
-  console.log(patient, "patient");
-  console.log(input, "input");
-
   // return <div></div>;
+  const ch = changes.find((c) => c.id === test.id);
 
   const [value, setValue] = useState(test.observedValue || "");
   const [highlight, setHighlight] = useState(test.highlight || "");
   const [testmethodtype, setTestmethodtype] = useState(
     test.testmethodtype || test.test.testmethodtype || ""
   );
+  const [bold, setBold] = useState(test.bold || false);
 
   const items = ["Normal", "High", "Low"];
   const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    if (ch && ch.observedValue) {
+      setValue(ch?.observedValue);
+      const h = handleHighlight(parseInt(ch?.observedValue));
+      if (h !== highlight) {
+        setHighlight(h);
+        handleChange(h, test.id, "highlight");
+      }
+    }
+  }, [changes]);
+
+  useEffect(() => {
+    handleFormula && profile && handleFormula(profile, test);
+    console.log(changes, "changes");
+  }, []);
 
   const filteredPeople =
     highlight === ""
@@ -43,32 +62,30 @@ export default function TestValue({
         );
 
   const getReferenceValue = (test: Test) => {
-    const r = test.referencesValues.find(
+    let r = test.referencesValues.find(
       (ref) =>
         patient && ref.minAge <= patient?.age && ref.maxAge >= patient?.age
     );
-    if (r) return [r.lowerValue, r.upperValue, r.unit];
-    else if (test.referencesValues.length > 0)
-      return [
-        test.referencesValues[0].lowerValue,
-        test.referencesValues[0].upperValue,
-        test.referencesValues[0].unit,
-      ];
-    else return [0, 0, "-"];
-    // if (r) return `${r.lowerValue} - ${r.upperValue} ${r.unit}`;
-    // else if (test.referencesValues.length > 0)
-    //   return `${test.referencesValues[0].lowerValue} - ${test.referencesValues[0].upperValue} ${test.referencesValues[0].unit}`;
-    // else return "-";
+    if (test.referencesValues.length === 0)
+      return {
+        arr: [0, 0, "-"],
+        str: ["-"],
+        unit: "-",
+      };
+    if (!r) r = test.referencesValues[0];
+
+    const str = r.note
+      ? r.note.split("\n")
+      : [`${r.lowerValue} - ${r.upperValue} `];
+
+    return {
+      arr: [r?.lowerValue, r?.upperValue, r?.unit],
+      str: str,
+      unit: r?.unit,
+    };
   };
 
-  // useEffect(() => {
-  //   // Focus on the first input element when the component mounts
-  //   if (firstInputElementRef.current) {
-  //     firstInputElementRef.current.focus();
-  //   }
-  // }, []);
-
-  const arr = getReferenceValue(test.test);
+  const { arr, str, unit } = getReferenceValue(test.test);
 
   const handleHighlight = (value: number) => {
     if (value > (arr[1] as number)) return "High";
@@ -115,20 +132,28 @@ export default function TestValue({
           className="px-5 py-2 text-sm font-medium text-gray-800"
           // align="center"
         >
-          {value || 0}
+          {value}
         </td>
       ) : (
         <td className="px-3  text-sm font-medium text-gray-800 ">
-          <div className=" border-b-2 border-teal-500 py-2 px-2 max-w-[6rem]">
+          <div className="border-b-[1px] focus-within:border-b-2 focus-within:border-teal-500 border-gray-500 py-2 px-2 max-w-[6rem]">
             <input
               // ref={firstInputElementRef}
               value={value}
               onChange={(e) => {
                 setValue(e.target.value);
+                handleChange(e.target.value, test.id, "observedValue");
 
                 const h = handleHighlight(parseInt(e.target.value));
                 if (h !== highlight) {
                   setHighlight(h);
+                  if (h !== "") {
+                    handleChange(true, test.id, "bold");
+                    setBold(true);
+                  } else {
+                    handleChange(false, test.id, "bold");
+                    setBold(false);
+                  }
                   handleChange(h, test.id, "highlight");
                 }
               }}
@@ -154,6 +179,11 @@ export default function TestValue({
                 type="checkbox"
                 size={60}
                 className="w-4 h-4 mt-auto mr-2 cursor-pointer"
+                checked={bold}
+                onChange={(e) => {
+                  handleChange(e.target.checked, test.id, "bold");
+                  setBold(e.target.checked);
+                }}
               />
               <Combobox
                 value={highlight}
@@ -162,10 +192,12 @@ export default function TestValue({
                   handleChange(v, test.id, "highlight");
                 }}
               >
-                <div className="relative mt-1">
+                <div className="relative mt-1 ">
                   <div className="relative w-full cursor-default overflow-hidden text-left   sm:text-sm border-b-2 border-teal-500 py-2 px-2 max-w-[6rem]">
                     <Combobox.Input
-                      className="w-full pl-1  text-sm leading-5 text-gray-900 border-none focus:outline-none bg-transparent"
+                      className={`w-full pl-1  text-sm leading-5 text-gray-900 border-none focus:outline-none bg-transparent font-${
+                        test.bold ? "bold" : "normal"
+                      }`}
                       displayValue={(person: string) => person}
                       onChange={(event) => {
                         setHighlight(event.target.value);
@@ -239,12 +271,14 @@ export default function TestValue({
             highlight
           ))}
       </td>
-      <td className="px-3 py-2 text-sm font-medium text-gray-800 ">
-        {`${arr[0]} - ${arr[1]} ${arr[2]}`}
+      <td className="px-3 py-2 text-sm font-medium text-gray-800">
+        <div className="flex flex-col justify-center">
+          {str.map((s) => (
+            <p>{s}</p>
+          ))}
+        </div>
       </td>
-      <td className="px-3 py-2 text-sm font-medium text-gray-800 ">
-        {test.sampleunit}
-      </td>
+      <td className="px-3 py-2 text-sm font-medium text-gray-800 ">{unit}</td>
     </tr>
   );
 }

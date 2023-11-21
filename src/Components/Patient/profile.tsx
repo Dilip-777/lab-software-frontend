@@ -1,14 +1,14 @@
 import { Fragment, useEffect, useState } from "react";
 import Divider from "../../util/Divider";
 import { api } from "../../Api";
-import { useLocation, useParams } from "react-router-dom";
-import { useQuery } from "react-query";
+import { useParams } from "react-router-dom";
 import Loader from "../../util/Loader";
 import ResultModal from "./resultModal";
 import { Button } from "../../util/Buttons";
 import { Menu, Transition } from "@headlessui/react";
-import { generateReport } from "../../util/generateReport";
-import { Document, Page } from "react-pdf";
+import CollectionModal from "./collectionModal";
+import moment from "moment";
+import PreviewModal from "./previewModal";
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
@@ -20,7 +20,9 @@ export default function PatientProfile() {
   const [patient, setPatient] = useState<Patient | undefined>();
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState<Blob | undefined>(undefined);
+  const [isOpen1, setIsOpen1] = useState(false);
+  const [isOpen2, setIsOpen2] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | undefined>(undefined);
   const [selectedOrder, setSelectedOrder] = useState<Order | undefined>(
     undefined
   );
@@ -34,6 +36,17 @@ export default function PatientProfile() {
   function openModal(order?: Order) {
     setSelectedOrder(order);
     setIsOpen(true);
+  }
+
+  function closeModal1() {
+    setIsOpen1(false);
+    setSelected(undefined);
+    setSelectedOrder(undefined);
+  }
+
+  function openModal1(order?: Order) {
+    setSelectedOrder(order);
+    setIsOpen1(true);
   }
 
   const { id } = useParams();
@@ -50,7 +63,9 @@ export default function PatientProfile() {
     fetchPatient();
   }, []);
 
-  console.log(pdfUrl);
+  console.log(new Date("2023-09-22T19:40"), "gjgjgff");
+
+  console.log(orders, selectedOrder, "orders");
 
   return (
     <div className="flex flex-col">
@@ -60,7 +75,7 @@ export default function PatientProfile() {
       {loading ? (
         <Loader />
       ) : (
-        <div className="bg-white mx-3 p-6 rounded-md ">
+        <div className="bg-white ml-[10.5rem] mr-[3rem] p-6 rounded-md ">
           <div className="flex w-full justify-around">
             <div className="flex ">
               <svg
@@ -163,13 +178,9 @@ export default function PatientProfile() {
         {orders.map((order) => (
           <div className="flex relative">
             <div className="w-20 h-20 rounded-full bg-white z-10 text-sm flex justify-center items-center">
-              <p className="text-center">
+              <p className="text-center px-1">
                 {" "}
-                {`${new Date(order.orderDate).getDate()} ${new Date(
-                  order.orderDate
-                ).toLocaleString("default", { month: "short" })} ${new Date(
-                  order.orderDate
-                ).getFullYear()}`}
+                {moment(order.orderDate).format("ll")}
               </p>
             </div>
             <div className="h-full w-[2px] left-[2.3rem] bg-[#d1d5db] absolute"></div>
@@ -177,27 +188,30 @@ export default function PatientProfile() {
             <section className="bg-white w-full  p-4 mb-7 pb-8">
               <div className="flex">
                 {/* <div> */}
-                <p>7:00 AM 5min</p>
+                <p className="mx-2">{moment(order.orderDate).format("LT")}</p>
                 {/* </div> */}
 
                 <div className="flex justify-between w-full items-center">
                   <div className="flex">
                     <p>
-                      Dr. P.Tulasi Kumari.M.B.B.S.,M.D. <br />2 Tests
+                      {order.lab?.diagonsticname ||
+                        order.doctor?.doctorname ||
+                        "Self"}
+                      <br />
+                      {order.tests.length > 0 &&
+                        `${order.tests.length} Tests, `}
+                      {order.profiles.length > 0 &&
+                        `${order.profiles.length} Profiles, `}
+                      {order.packages.length > 0 &&
+                        `${order.packages.length} Packages`}
                     </p>
                   </div>
                   <div className="flex">
                     <div
                       className="p-2 rounded-full hover:bg-gray-200 mx-2 cursor-pointer"
                       onClick={async () => {
-                        const url = await generateReport({
-                          packages: order.packages,
-                          tests: order.tests,
-                          order,
-                          patient: patient as Patient,
-                          profiles: order.profiles,
-                        });
-                        setPdfUrl(url as Blob);
+                        setIsOpen2(true);
+                        setSelectedOrder(order);
                       }}
                     >
                       <svg
@@ -257,6 +271,7 @@ export default function PatientProfile() {
                           <Menu.Item>
                             {({ active }) => (
                               <a
+                                onClick={() => openModal1(order)}
                                 href="#"
                                 className={classNames(
                                   active ? "bg-gray-100" : "",
@@ -390,13 +405,14 @@ export default function PatientProfile() {
                       <td
                         onClick={() => {
                           openModal(undefined);
-                          const order = {
+                          const o = {
+                            id: order.id,
                             packages: [packages],
                             profiles: [],
                             tests: [],
                           };
 
-                          setSelected(order);
+                          setSelected(o);
                         }}
                         className="px-6 py-0 text-sm font-medium text-left text-gray-700 uppercase "
                       >
@@ -434,12 +450,13 @@ export default function PatientProfile() {
                       <td
                         onClick={() => {
                           openModal(undefined);
-                          const order = {
+                          const o = {
+                            id: order.id,
                             profiles: [packages],
                             packages: [],
                             tests: [],
                           };
-                          setSelected(order);
+                          setSelected(o);
                         }}
                         className="px-6 py-0 text-sm font-medium text-left text-gray-700 uppercase "
                       >
@@ -478,12 +495,13 @@ export default function PatientProfile() {
                       <td
                         onClick={() => {
                           openModal(undefined);
-                          const order = {
+                          const o = {
+                            id: order.id,
                             tests: [test],
                             profiles: [],
                             packages: [],
                           };
-                          setSelected(order);
+                          setSelected(o);
                         }}
                         className="px-6 py-1 text-sm font-medium text-left text-gray-700 uppercase "
                       >
@@ -503,12 +521,41 @@ export default function PatientProfile() {
         {/* <Document file="file:///C:/Users/pr875/Downloads/generated_table%20(11).pdf">
           <Page pageNumber={1} />
         </Document> */}
+
+        {/* <div className="m-5">
+          <iframe
+            src={pdfUrl}
+            width="100%"
+            height="100%"
+            style={{ border: "none" }}
+          ></iframe>
+        </div> */}
       </div>
+
+      <PreviewModal
+        isOpen={isOpen2}
+        closeModal={() => {
+          setSelectedOrder(undefined);
+          setIsOpen2(false);
+        }}
+        pdfUrl={pdfUrl as string}
+        order={selectedOrder as Order}
+        patient={patient}
+      />
+
       <ResultModal
         closeModal={closeModal}
         isOpen={isOpen}
         order={selectedOrder || selected}
         patient={patient}
+        fetchOrders={fetchPatient}
+      />
+      <CollectionModal
+        closeModal={closeModal1}
+        isOpen={isOpen1}
+        order={selectedOrder || selected}
+        patient={patient}
+        fetchPatient={fetchPatient}
       />
     </div>
   );

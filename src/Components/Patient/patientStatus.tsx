@@ -7,6 +7,11 @@ import { useNavigate } from "react-router-dom";
 import ResultModal from "./resultModal";
 import { Menu, Transition } from "@headlessui/react";
 import { generateReport } from "../../util/generateReport";
+import PreviewModal from "./previewModal";
+import { log } from "console";
+import moment from "moment";
+import CollectionModal from "./collectionModal";
+import DeleteModal from "../../util/DeleteModal";
 
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
@@ -69,10 +74,13 @@ export default function PatientStatus() {
   const [selectedOrder, setSelectedOrder] = useState<Order | undefined>(
     undefined
   );
+  const [open, setOpen] = useState(false);
+  const [open1, setOpen1] = useState(false);
 
   console.log(Date.now().toLocaleString("en-GB"), "date");
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isOpen2, setIsOpen2] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const handleMouseEnter = (index: number) => {
@@ -93,6 +101,17 @@ export default function PatientStatus() {
     console.log(order, "order");
 
     setIsOpen(true);
+  }
+
+  function openModal1(order?: Order) {
+    setSelectedOrder(order);
+
+    setOpen(true);
+  }
+
+  function closeModal1() {
+    setOpen(false);
+    setSelectedOrder(undefined);
   }
 
   console.log(selectedOrder, "selectedOrder");
@@ -121,7 +140,7 @@ export default function PatientStatus() {
         "&status=" +
         (s || status)
     );
-    setOrders(res.data.data);
+    setOrders(res.data.data || []);
     setLoading(false);
   };
   useEffect(() => {
@@ -130,6 +149,19 @@ export default function PatientStatus() {
 
   const updateStatus = async (order: Order) => {
     console.log(order, "order");
+
+    if (order.orderstatus === "Authorise") {
+      openModal(order);
+      // await api.put('/order/updateStatus', {
+      //   id: order.id,
+      //   orderstatus: 'Test Completed',
+      //   reporttime: new Date(),
+      // });
+      // setOrderId(0);
+
+      // fetchOrders();
+      return;
+    }
 
     if (order.orderstatus === "Processing") {
       // navigate(`/patient/profile/${pid}`);
@@ -143,6 +175,10 @@ export default function PatientStatus() {
       const res = await api.put("/order/updateStatus", {
         id: order.id,
         orderstatus: newStatus,
+        collectiontime:
+          newStatus === "Sample Collected" ? new Date() : order.collectiontime,
+        processtime:
+          newStatus === "Processing" ? new Date() : order.processtime,
       });
 
       setOrderId(0);
@@ -151,12 +187,12 @@ export default function PatientStatus() {
     }
   };
 
-  const getTestNames = (tests: any[]) => {
-    let testnames = "";
-    tests.forEach((t) => {
-      testnames += t.name + ", ";
-    });
-    return testnames;
+  const getTestNames = (order: Order) => {
+    let arr: string[] = [];
+    arr.push(...order.tests.map((t) => t.name));
+    arr.push(...order.profiles.map((p) => p.name));
+    arr.push(...order.packages.map((p) => p.name));
+    return arr.length ? arr.join(", ") : "N/A";
   };
 
   const colors = [
@@ -165,6 +201,44 @@ export default function PatientStatus() {
     { status: "Processing", color: "#dd00ff" },
     { status: "Test Completed", color: "#13e900" },
   ];
+
+  const options = [
+    {
+      value: "History",
+      onClick: (order: Order) =>
+        navigate(`/patient/profile/${order.patient.id}`),
+    },
+
+    {
+      value: "Edit Order",
+      onClick: (order: Order) => navigate(`/patient/${order.id}`),
+    },
+    {
+      value: "Delete Order",
+      onClick: (order: Order) => {
+        setSelectedOrder(order);
+        setOpen1(true);
+      },
+    },
+    {
+      value: "Collection Timings",
+      onClick: (order: Order) => openModal1(order),
+    },
+    { value: "Send to Whatsapp", onClick: () => {} },
+  ];
+
+  const handleDelete = async () => {
+    const res = await api.delete(`/order/delete/${selectedOrder?.id}`);
+    fetchOrders();
+    closeModal1();
+  };
+
+  console.log(
+    new Date("2023-10-08T00:00:00Z"),
+    new Date(toDate),
+    moment(fromDate).format(),
+    "date"
+  );
 
   return (
     <div className="flex flex-col">
@@ -263,10 +337,10 @@ export default function PatientStatus() {
         </div>
         <Divider />
         <div className="flex flex-col my-5">
-          <div className="flex flex-row justify-between">
+          <div className="flex flex-row justify-between w-full">
             <div
               onClick={() => fetchOrders("Registered")}
-              className="flex justify-center items-center px-3 py-2  bg-[#ff9999] text-white max-w-[12rem] cursor-pointer w-[100%]"
+              className=" px-3 py-2  bg-[#ff9999] text-white max-w-[12rem] cursor-pointer"
             >
               <p className="font-semibold text-[14px]">
                 REGISTERED{" "}
@@ -321,7 +395,7 @@ export default function PatientStatus() {
               value={mailType}
               setValue={setMailType}
               inputClassName="h-9"
-              divClassName="mx-0"
+              divClassName="!mx-0"
             />
             <FormSelect
               options={[
@@ -333,7 +407,7 @@ export default function PatientStatus() {
               value={whatsapp}
               setValue={setWhatsapp}
               inputClassName="h-9"
-              divClassName="mx-0"
+              divClassName="!mx-0"
             />
             {/* </div> */}
           </div>
@@ -348,52 +422,75 @@ export default function PatientStatus() {
               <div className="overflow-hidden border rounded-lg">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
-                    <tr className="bg-[#e0e0e0] py-3 h-[4rem]">
+                    <tr className="bg-[#e0e0e0] p-3 h-[4rem]">
                       <th
                         scope="col"
-                        className="px-6 py-3 text-xs font-bold text-left text-gray-700 uppercase "
+                        align="center"
+                        className="px-2 pl-5 py-3 text-xs font-bold  text-gray-700 uppercase "
                       >
                         S No
                       </th>
+
                       <th
                         scope="col"
-                        className="px-6 py-3 text-xs font-bold text-left text-gray-700 uppercase "
+                        align="center"
+                        className="px-2 py-3 text-xs font-bold  text-gray-700 uppercase "
+                      >
+                        PId
+                      </th>
+                      <th
+                        scope="col"
+                        align="center"
+                        className="px-2 py-3 text-xs font-bold  text-gray-700 uppercase "
                       >
                         Test Id
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-xs font-bold text-left text-gray-700 uppercase "
+                        align="center"
+                        className="px-2 py-3 text-xs font-bold  text-gray-700 uppercase "
                       >
                         Patient Name
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-xs font-bold text-left text-gray-700 uppercase "
+                        align="center"
+                        className="px-2 py-3 text-xs font-bold  text-gray-700 uppercase "
                       >
                         Age / Gender
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-xs font-bold text-left text-gray-700 uppercase "
+                        align="center"
+                        className="px-2 py-3 text-xs font-bold  text-gray-700 uppercase "
                       >
                         Ref Doctor
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-xs font-bold text-left text-gray-700 uppercase "
+                        align="center"
+                        className="px-2 py-3 text-xs font-bold  text-gray-700 uppercase "
                       >
                         Ref Lab
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-xs font-bold text-left text-gray-700 uppercase "
+                        align="center"
+                        className="px-2 py-3 text-xs font-bold text-gray-700 uppercase "
                       >
                         Test Name
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-xs font-bold text-left text-gray-700 uppercase "
+                        align="center"
+                        className="px-2 py-3 text-xs font-bold  text-gray-700 uppercase "
+                      >
+                        Registered Date
+                      </th>
+                      <th
+                        scope="col"
+                        align="center"
+                        className="px-2 py-3 text-xs font-bold  text-gray-700 uppercase "
                       >
                         Status
                       </th>
@@ -401,48 +498,90 @@ export default function PatientStatus() {
                         scope="col"
                         colSpan={2}
                         align="center"
-                        className="px-6 py-3 text-xs font-extrabold text-center text-gray-700 uppercase "
+                        className="px-2 py-3 text-xs font-extrabold text-center text-gray-700 uppercase "
                       >
                         Actions
                       </th>
                     </tr>
                   </thead>
                   {orders.length > 0 ? (
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="divide-y divide-gray-200 min-h-[20rem] z-[-1]">
                       {orders.map((order, index) => {
                         const color = colors.find(
                           (c) => c.status === order.orderstatus
                         )?.color;
                         return (
                           <tr key={index} className={`bg-[${color}]`}>
-                            <td className="px-6 py-4 text-xs font-semibold  text-gray-800 whitespace-nowrap">
-                              {index + 1}
+                            {/* // <tr key={index} className={`bg-[#91f9cc]`}> */}
+                            <td
+                              align="center"
+                              className="px-2 pl-6 py-4 text-xs font-semibold  text-gray-800 whitespace-nowrap"
+                            >
+                              {index + 1} <br />
                             </td>
-                            <td className="px-6 py-4 text-xs font-semibold text-gray-800 whitespace-nowrap">
+                            <td
+                              align="center"
+                              className="px-2 py-4 text-xs font-semibold text-gray-800 whitespace-nowrap"
+                            >
+                              {order.patient?.id}
+                              {order.patient.orders.length === 1 && (
+                                <p
+                                  className={`text-[${color}] bg-white px-1 rounded-sm`}
+                                >
+                                  New
+                                </p>
+                              )}
+                            </td>
+                            <td
+                              align="center"
+                              className="px-2 py-4 text-xs font-semibold text-gray-800 whitespace-nowrap"
+                            >
                               {order.id}
                             </td>
-                            <td className="px-6 py-4 text-xs font-semibold text-gray-800 whitespace-nowrap">
+                            <td
+                              align="center"
+                              className="px-2 py-4 text-xs font-semibold text-gray-800 max-w-[10rem] leading-5"
+                            >
                               {order.patient.nameprefix +
                                 " " +
                                 order.patient.name}
                             </td>
-                            <td className="px-6 py-4 text-xs font-semibold text-gray-800 whitespace-nowrap">
+                            <td
+                              align="center"
+                              className="px-2 py-4 text-xs font-semibold text-gray-800 whitespace-nowrap"
+                            >
                               {order.patient.age +
                                 " " +
                                 order.patient.agesuffix +
                                 " / " +
                                 order.patient.gender}
                             </td>
-                            <td className="px-6 py-4 text-xs font-semibold text-gray-800 whitespace-nowrap">
+                            <td
+                              align="center"
+                              className="px-2 py-4 text-xs font-semibold text-gray-800 max-w-[10rem] leading-5"
+                            >
                               {order.doctor?.doctorname || "N/A"}
                             </td>
-                            <td className="px-6 py-4 text-xs font-semibold text-gray-800 whitespace-nowrap">
+                            <td
+                              align="center"
+                              className="px-2 py-4 text-xs font-semibold text-gray-800 max-w-[10rem] leading-5"
+                            >
                               {order.lab?.diagonsticname || "N/A"}
                             </td>
-                            <td className="px-6 py-4 text-xs font-semibold text-gray-800 ">
-                              {getTestNames(order.tests) || "N/A"}
+                            <td
+                              className="px-2 py-4 text-xs font-semibold text-gray-800 max-w-[10rem] leading-5"
+                              align="center"
+                            >
+                              {getTestNames(order)} {getTestNames(order)}{" "}
+                              {getTestNames(order)}
                             </td>
-                            <td className="px-6 py-4 text-xs font-semibold text-gray-800 whitespace-nowrap">
+                            <td className="px-0 py-4 text-xs font-semibold text-gray-800 ">
+                              {moment(order.orderDate).format("lll")}
+                            </td>
+                            <td
+                              align="center"
+                              className="px-2 py-4 text-xs font-semibold text-gray-800 whitespace-nowrap"
+                            >
                               <div
                                 className={`p-2 text-center bg-white cursor-pointer`}
                                 onClick={() => updateStatus(order)}
@@ -463,16 +602,12 @@ export default function PatientStatus() {
                             <td
                               onClick={async () => {
                                 if (order.orderstatus === "Test Completed") {
-                                  const url = await generateReport({
-                                    packages: order.packages,
-                                    tests: order.tests,
-                                    order,
-                                    patient: order.patient as Patient,
-                                    profiles: order.profiles,
-                                  });
+                                  setIsOpen2(true);
+                                  setSelectedOrder(order);
                                 }
                               }}
-                              className="px-6 py-4 text-xs font-semibold  text-center whitespace-nowrap"
+                              align="center"
+                              className="px-2 py-4 text-xs font-semibold  text-center whitespace-nowrap"
                             >
                               <div className="flex flex-col items-center">
                                 <div
@@ -501,7 +636,10 @@ export default function PatientStatus() {
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-xs font-semibold  text-center whitespace-nowrap">
+                            <td
+                              align="center"
+                              className="px-2 py-4 text-xs font-semibold  text-center whitespace-nowrap"
+                            >
                               <Menu as="div" className="relative ">
                                 <div>
                                   <Menu.Button
@@ -537,50 +675,24 @@ export default function PatientStatus() {
                                   leaveTo="transform opacity-0 scale-95"
                                 >
                                   <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                                    <Menu.Item>
-                                      {({ active }) => (
-                                        <a
-                                          href="#"
-                                          onClick={() =>
-                                            navigate(
-                                              `/patient/profile/${order.patient.id}`
-                                            )
-                                          }
-                                          className={classNames(
-                                            active ? "bg-gray-100" : "",
-                                            "block px-4 py-2 text-sm text-gray-700"
-                                          )}
-                                        >
-                                          History
-                                        </a>
-                                      )}
-                                    </Menu.Item>
-                                    <Menu.Item>
-                                      {({ active }) => (
-                                        <a
-                                          href="#"
-                                          className={classNames(
-                                            active ? "bg-gray-100" : "",
-                                            "block px-4 py-2 text-sm text-gray-700"
-                                          )}
-                                        >
-                                          Option1
-                                        </a>
-                                      )}
-                                    </Menu.Item>
-                                    <Menu.Item>
-                                      {({ active }) => (
-                                        <a
-                                          href="#"
-                                          className={classNames(
-                                            active ? "bg-gray-100" : "",
-                                            "block px-4 py-2 text-sm text-gray-700"
-                                          )}
-                                        >
-                                          Option2
-                                        </a>
-                                      )}
-                                    </Menu.Item>
+                                    {options.map((option) => (
+                                      <Menu.Item key={option.value}>
+                                        {({ active }) => (
+                                          <a
+                                            href="#"
+                                            onClick={() =>
+                                              option.onClick(order)
+                                            }
+                                            className={classNames(
+                                              active ? "bg-gray-100" : "",
+                                              "block px-4 py-2 text-sm text-gray-600 text-left"
+                                            )}
+                                          >
+                                            {option.value}
+                                          </a>
+                                        )}
+                                      </Menu.Item>
+                                    ))}
                                   </Menu.Items>
                                 </Transition>
                               </Menu>
@@ -588,11 +700,15 @@ export default function PatientStatus() {
                           </tr>
                         );
                       })}
+                      <tr className="h-[10rem]"></tr>
                     </tbody>
                   ) : (
                     <tbody className="divide-y divide-gray-200">
                       <tr>
-                        <td className="px-6 py-4 text-sm font-semibold  text-gray-800 whitespace-nowrap">
+                        <td
+                          align="center"
+                          className="px-2 py-4 text-sm font-semibold  text-gray-800 whitespace-nowrap"
+                        >
                           No Orders to show
                         </td>
                       </tr>
@@ -610,6 +726,28 @@ export default function PatientStatus() {
         order={selectedOrder}
         patient={selectedOrder?.patient}
         fetchOrders={fetchOrders}
+      />
+      <PreviewModal
+        isOpen={isOpen2}
+        closeModal={() => {
+          setSelectedOrder(undefined);
+          setIsOpen2(false);
+        }}
+        pdfUrl={""}
+        order={selectedOrder as Order}
+        patient={selectedOrder?.patient}
+      />
+      <CollectionModal
+        closeModal={closeModal1}
+        isOpen={open}
+        order={selectedOrder}
+        patient={selectedOrder?.patient}
+        fetchPatient={fetchOrders}
+      />
+      <DeleteModal
+        open={open1}
+        setOpen={setOpen1}
+        handleDelete={handleDelete}
       />
     </div>
   );

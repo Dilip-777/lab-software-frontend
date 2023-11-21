@@ -6,59 +6,30 @@ interface Props {
   tests: OrderTest[];
   patient: Patient;
   order: Order;
+  selected?: any[];
+  departments: Department[];
+  letterhead: boolean;
 }
+
+const getnote = (note: string) => {
+  const retrievedText = note.replace(/\n/g, "<br>");
+  return retrievedText;
+};
 
 const getReferenceValue = (test: Test, patient: Patient) => {
   const r = test.referencesValues.find(
     (ref) => patient && ref.minAge <= patient?.age && ref.maxAge >= patient?.age
   );
-  if (r) return `${r.lowerValue} - ${r.upperValue} ${r.unit}`;
+  if (r)
+    return (
+      getnote(r.note || "") || `${r.lowerValue} - ${r.upperValue} ${r.unit}`
+    );
   else if (test.referencesValues.length > 0)
-    return `${test.referencesValues[0].lowerValue} - ${test.referencesValues[0].upperValue} ${test.referencesValues[0].unit}`;
+    return (
+      getnote(test.referencesValues[0].note || "") ||
+      `${test.referencesValues[0].lowerValue} - ${test.referencesValues[0].upperValue} ${test.referencesValues[0].unit}`
+    );
   else return "-";
-};
-
-const patientDetails = (patient: Patient, order: Order) => {
-  return `
-  
-        <div style="display: flex; justify-content: space-between; ">
-            <div style="display: flex; flex-direction: column;">
-                <p style="font-size: 15px; font-weight: bolder;margin:3px;">${
-                  patient.nameprefix + " " + patient.name
-                }</p>
-                <p style="font-size: 14px;margin: 2px;"><strong>Age : </strong>${
-                  patient.age + " " + patient.agesuffix
-                }</p>
-                <p style="font-size: 14px; margin: 2px;"><strong>Sex : </strong>${
-                  patient.gender
-                }</p>
-                <p style="font-size: 14px;margin:2px;"><strong>PID : </strong>${
-                  patient.id
-                }</p>
-            </div>
-            <div style="border-left: 1.5px solid black;  margin-left: 1rem; height: 6rem;"></div>
-            <div style="display: flex; flex-direction: column; justify-self: flex-start;">
-                <p style="font-size: 14px;margin:1px;">
-                  <strong> Sample Collected At:</strong> <br>
-            Krupanidhi book stall,</p>
-            <p style="font-size: 14px;margin:1px;margin-top: 5px;">Ref. By: <strong>${
-              order.lab?.diagonsticname || order.doctor?.doctorname || "Self"
-            }</strong></p>
-                </p>
-            </div>
-             <div style="border-left: 1.5px solid black;  margin-left: 1rem; height: 6rem;"></div>
-              <div style="display: flex; flex-direction: column;">
-                <p style="font-size: 12px;margin:1px;">
-                   Registered On: <br>
-                   11:18 AM 15 Aug, 23<br>
-                   Collected on:<br>
-                   11:43 AM 15 Aug, 23<br>
-                   Reported on:<br>
-                   12:11 PM 15 Aug, 23
-                </p>
-            </div>
-        </div>
-    `;
 };
 
 export const generateReport = async ({
@@ -67,75 +38,137 @@ export const generateReport = async ({
   tests,
   patient,
   order,
+  selected,
+  departments,
+  letterhead,
 }: Props) => {
+  const signs = `
+        <div style="font-size: 12px; display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; position: relative;   max-width: 100%;  font-family: 'Poppins', sans-serif; margin: 0;page-break-after: always;">
+         ${departments
+           .map(
+             (department) => `
+          <div style="display: flex; flex-direction: column; align-items: center;">
+                <img src="http://localhost:5000/uploadedFiles/${department.doctorSignature}" style="width: 100px; height: 100px; object-fit: contain;"/>
+                <p style="font-size: 12px; font-weight: bold;">${department.doctor}</p>
+            </div>
+         `
+           )
+           .join("")}
+    </div>`;
+
   const testTable = (test: OrderTest) => {
+    console.log(test.test.note);
+
     return `
-        <tr style=" break-inside: avoid;">
-            <td style="padding-top: 1.2rem; text-align: left; min-width: 11rem; max-width: 11rem; margin-right: 1rem; word-wrap: break-word">${test.name}</td>
-            <td style=" text-align: center;padding-top: 1.2rem;">${
-                test.observedValue
-                }</td>
-            <td style=" text-align: center; padding-right: 2rem;padding-top: 1.2rem;">${
-                test.highlight || "-"
-                }</td>
-            <td style=" text-align: left;padding-top: 1.2rem;">${
-                test.sampleunit
-                }</td>
-            <td style=" text-align: center;padding-top: 1.2rem;">${getReferenceValue(
-                test.test,
-                patient
-                )}</td>
+        <tr style="break-inside: avoid; ">
+            <td style="padding-left:0px; font-size:13px; text-align: left; min-width: 11rem; max-width: 11rem; margin-right: 1rem; word-wrap: break-word">
+             <div >
+             <p style="margin-bottom:2px;">${test.name}</p>
+
+                <p style="font-size:10px; margin-top:0;">${
+                  test.testmethodtype || test.test.testmethodtype || ""
+                }</p>
+            </td>
+            <td style=" text-align: center;font-weight: ${
+              test.highlight === "High" || test.highlight === "Low"
+                ? "bold"
+                : "normal"
+            } ">${test.observedValue}</td>
+            <td style=" text-align: center; padding-right: 2rem;font-weight: ${
+              test.bold ? "bold" : "normal"
+            }">${test.highlight || "-"}</td>
+            <td style=" text-align: left;">${test.sampleunit || "-"}</td>
+            <td style=" text-align: left;">${getReferenceValue(
+              test.test,
+              patient
+            )}</td>
         </tr>
-        ${(test.note || test.test.note) && (
-          
-          `<tr><td colspan="5"><div style="border: 2px solid black; padding: 4px; margin-top: 1rem; margin-bottom: 1rem;" ${test.test.note} </div></td></tr>`
-        )}
+
+        
+          <tr style="break-inside: avoid;"><td colspan='5' style='padding-top: 0.7rem;padding-left:0; text-align: left;'>
+          ${test.test.note || ""}
+          </td></tr>
+        
     `;
   };
 
   const profileTable = (profile: OrderProfile) => {
     return `
        <tr>
-            <td> <p style="margin-top: 9px; margin-bottom: 9px; font-size: 14px;"><strong>${
-                profile.name
+            <td style="padding-left:0px;"> <p style="margin-top: 9px; margin-bottom: 9px; font-size: 14px;"><strong>${
+              profile.name
             }</strong></p></td>
         </tr>
 
-        ${profile.tests.filter((test) => test.observedValue).map((test) => testTable(test)).join("")}
+        ${profile.headings
+          .filter(
+            (heading) =>
+              heading.tests.filter((test) => test.observedValue).length > 0
+          )
+          .map(
+            (heading) => `
+        <tr>
+            <td style="padding-left:0px; text-align: left; font-size: 13px; font-weight: bold;">${
+              heading.heading
+            }</td>
+            <td style=" text-align: center;"></td>
+            <td style=" text-align: center;"></td>
+            <td style=" text-align: left;"></td>
+            <td style=" text-align: center;"></td>
+        </tr>
+        ${heading.tests
+          .filter((test) => test.observedValue)
+          .map((test) => testTable(test))
+          .join("")}
+        `
+          )
+          .join("")}
+
+
+        ${profile.tests
+          .filter((test) => test.observedValue)
+          .map((test) => testTable(test))
+          .join("")}
 
     `;
   };
 
   const tableHead = `
             <thead>
-                <tr style="">
-                    <th style=" text-align: left;">Investigation</th>
+                <tr>
+                    <th style="padding-left:0px; text-align: left;padding-top: 1rem;">Investigation</th>
                     <th style=" text-align: center;">Obtained Value</th>
                     <th style=" text-align: left;"></th>
                     <th style=" text-align: left;">Units</th>
-                    <th style=" text-align: center;">Reference Intervals</th>
+                    <th style=" text-align: left;">Reference Intervals</th>
                 </tr>    
             </thead>`;
 
   let combinedHtml = "";
-  packages.forEach((pkg) => {
-    combinedHtml += `
+  packages
+    .filter(
+      (p) =>
+        selected &&
+        selected.find((s) => s.type === "package" && s.name === p.name)
+    )
+    .forEach((pkg) => {
+      combinedHtml += `
          <div
-    style="font-size: 12px; position: relative;page-break-after: always; padding: 9px; background-image: url('http://localhost:500/images/reportbg.png'); pb-10; background-size: contain; max-width: 100%; background-repeat: no-repeat; padding-left: 2rem; padding-right: 2rem;font-family: 'Poppins', sans-serif; margin: 0;">
-    <div style="margin-top: 8rem; ">
-                ${patientDetails(patient, order)}
-                    <div style="border-top: 1px solid black; width: 100%; margin-bottom: 0.5rem; margin-top: 1rem;margin-bottom: 1rem;"></div>
+    style="font-size: 12px; position: relative;page-break-after: always; pb-10; background-size: contain; max-width: 100%; background-repeat: no-repeat; font-family: 'Poppins', sans-serif; margin: 0;">
+    <div style=" ">
+                
                     <p style="margin-top: 9px; margin-bottom: 9px; font-size: 15px;font-weight: bolder;">${
-                        pkg.name
+                      pkg.name
                     }</p>
 
-                    
-
+            
          <table style="width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 13px;">
 
          ${tableHead}
             <tbody style="font-size: 13px;">
-                 ${pkg.profiles.map((profile) => profileTable(profile)).join("")}
+                 ${pkg.profiles
+                   .map((profile) => profileTable(profile))
+                   .join("")}
                  <tr>
                    <td></td>
                    <td></td>
@@ -149,19 +182,39 @@ export const generateReport = async ({
         </div>
         <div style="border-top: 1px solid black; width: 100%;margin-top: 0.5rem;"></div>
     </div>
+    ${
+      profiles.filter(
+        (p) =>
+          selected &&
+          selected.find((s) => s.type === "profile" && s.name === p.name)
+      ).length === 0 &&
+      tests
+        .filter(
+          (p) =>
+            !selected ||
+            selected.find((s) => s.type === "test" && s.name === p.name)
+        )
+        .filter((test) => test.observedValue).length === 0
+        ? signs
+        : ""
+    }
 </div>`;
-  });
+    });
 
-  profiles.forEach((profile) => {
-    combinedHtml += `
+  profiles
+    .filter(
+      (p) =>
+        selected &&
+        selected.find((s) => s.type === "profile" && s.name === p.name)
+    )
+    .forEach((profile) => {
+      combinedHtml += `
             <div
-    style="font-size: 12px; position: relative;min-height: 90vh;page-break-after: always; padding: 9px; background-image: url('http://localhost:500/images/reportbg.png'); pb-10; background-size: contain; max-width: 100%; background-repeat: no-repeat; padding-bottom: 0rem; padding-left: 2rem; padding-right: 2rem;font-family: 'Poppins', sans-serif; margin: 0;">
-    <div style="margin-top: 8rem; ">
-       ${patientDetails(patient, order)}
-         <div style="border-top: 1px solid black; width: 100%; margin-bottom: 0.5rem; margin-top: 1rem;margin-bottom: 1rem;"></div>
-                <p style="margin-top: 9px; margin-bottom: 9px; font-size: 15px;font-weight: bolder;">${
-                    profile.name
-                }</p>
+    style="font-size: 12px; position: relative;page-break-after: always; padding: 9px; pb-10; background-size: contain; max-width: 100%; background-repeat: no-repeat; padding-bottom: 0rem; font-family: 'Poppins', sans-serif; margin: 0;">
+    <div style=" ">
+       
+       
+                
             <table style="width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 13px;">
                 ${tableHead}
                 <tbody style="font-size: 13px;">
@@ -170,171 +223,109 @@ export const generateReport = async ({
             </table>    
         </div>
         <div style="border-top: 1px solid black; width: 100%;margin-top: 0.5rem;"></div>
+        ${
+          tests
+            .filter(
+              (p) =>
+                !selected ||
+                selected.find((s) => s.type === "test" && s.name === p.name)
+            )
+            .filter((test) => test.observedValue).length === 0
+            ? signs
+            : ""
+        }
     </div>
 </div>
         `;
-  });
+    });
 
-  tests.filter((test) => test.observedValue).forEach((test) => {
-    combinedHtml += `
+  tests
+    .filter(
+      (p) =>
+        !selected ||
+        selected.find((s) => s.type === "test" && s.name === p.name)
+    )
+    .filter((test) => test.observedValue)
+    .forEach((test, index) => {
+      combinedHtml += `
             <div
-    style="font-size: 12px; position: relative; padding: 9px; background-image: url('http://localhost:500/images/reportbg.png'); pb-10; background-size: contain; max-width: 100%; background-repeat: no-repeat; padding-bottom: 0rem; padding-left: 2rem; padding-right: 2rem;font-family: 'Poppins', sans-serif; margin: 0;page-break-after: always;">
+    style="font-size: 12px; position: relative; padding: 9px; pb-10;  max-width: 100%; padding-bottom: 0rem; font-family: 'Poppins', sans-serif; margin: 0;page-break-after: always;">
     <div
-    <div style="margin-top: 8rem; padding-bottom; 5rem">
-
-       ${patientDetails(patient, order)}
-         <div style="border-top: 1px solid black; width: 100%; margin-bottom: 0.5rem; margin-top: 1rem;margin-bottom: 1rem;"></div>
-
+    <div >
         <p style="margin-top: 9px; margin-bottom: 9px; font-size: 15px;font-weight: bolder;">${
           test.name
         }</p>
 
          <table style="width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 13px;">
            ${tableHead}    
-                <tbody style="font-size: 13px;z-index: -1;">
+                <tbody style="font-size: 13px;">
               ${testTable(test)}
             </tbody>
                
             </table>     
         </div>
         <div style="border-top: 1px solid black; width: 100%;margin-top: 0.5rem;"></div>
+        ${
+          index ===
+          tests
+            .filter(
+              (p) =>
+                !selected ||
+                selected.find((s) => s.type === "test" && s.name === p.name)
+            )
+            .filter((test) => test.observedValue).length -
+            1
+            ? signs
+            : ""
+        }
     </div>
 </div>
         `;
-  });
+    });
+
+  // combinedHtml += signs
 
   try {
     const response = await api.post(
-      "/generatepdf",
+      "/generatereport",
       {
+        patient,
+        letterhead,
+        order,
         html: `<!DOCTYPE html>
 <html>
-<style>#header, #footer { padding: 0 !important;, z-index:10; }</style>
-<body style="margin-top: 0;margin-bottom: 0;margin-left: 0;margin-right: 0; background-image: url('http://localhost:5000/images/reportbg.png');background-size: 100%; background-repeat: repeat;z-index: 1;">
-  ${combinedHtml}
-</body>
-        
+<style>
+  td{
+    padding-left: 7px;
+
+  }
+  th{
+    padding-left: 7px;
+  }
+  </style>
+  <body style="">
+   ${combinedHtml}
+  </body>
+ </html>       
         `,
-
-        //           `<!DOCTYPE html>
-        // <html>
-
-        // <head>
-        //     <title>Invoice</title>
-        //     <link rel="preconnect" href="https://fonts.googleapis.com">
-        //     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        //     <link
-        //         href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;1,100&family=Roboto+Mono&family=Roboto+Slab:wght@500&family=VT323&display=swap"
-        //         rel="stylesheet">
-        // </head>
-
-        // <body style="background-image: url('path/to/your/background_image.jpg'); background-repeat: repeat; ">
-
-        // <div
-        //     style="font-size: 12px; position: relative; padding: 9px; background-image: url('http://localhost:5000/images/reportbg.png'); pb-10; background-size: contain; max-width: 100%; background-repeat: no-repeat; padding-bottom: 2rem; padding-left: 2rem; padding-right: 2rem;font-family: 'Poppins', sans-serif;">
-        //     <div style="margin-top: 8rem; ">
-
-        //         <h4 style="margin-bottom: 3px; text-align:right; font-weight: bold; ">Bill Of Supply / Tax Invoice</h4>
-        //         <div style="border-top: 1px solid black; width: 100%; margin-bottom: 0.5rem; margin-top: 2rem"></div>
-        //         <div style="display: flex; justify-content: space-between; ">
-        //             <div style="display: flex; flex-direction: column;">
-        //                 <p style="font-size: 15px; font-weight: bolder;margin:3px;">Mr Narayana Reddy S</p>
-        //                 <p style="font-size: 14px;margin: 2px;"><strong>Age : </strong> 66 Y M 0 D</p>
-        //                 <p style="font-size: 14px; margin: 2px;"><strong>Sex : </strong> Male</p>
-        //                 <p style="font-size: 14px;margin:2px;"><strong>PID : </strong> 897987987</p>
-        //             </div>
-        //             <div style="border-left: 1.5px solid black;  margin-left: 1rem; height: 6rem;"></div>
-        //             <div style="display: flex; flex-direction: column; justify-self: flex-start;">
-        //                 <p style="font-size: 14px;margin:1px;">
-        //                   <strong> Sample Collected At:</strong> <br>
-        //             Krupanidhi book stall,</p>
-        //             <p style="font-size: 14px;margin:1px;margin-top: 5px;">Ref. By: <strong>Dr. G Supraja Reddy</strong></p>
-        //                 </p>
-        //             </div>
-        //              <div style="border-left: 1.5px solid black;  margin-left: 1rem; height: 6rem;"></div>
-        //               <div style="display: flex; flex-direction: column;">
-        //                 <p style="font-size: 12px;margin:1px;">
-        //                    Registered On: <br>
-        //                    11:18 AM 15 Aug, 23<br>
-        //                    Collected on:<br>
-        //                    11:43 AM 15 Aug, 23<br>
-        //                    Reported on:<br>
-        //                    12:11 PM 15 Aug, 23
-        //                 </p>
-        //             </div>
-        //         </div>
-        //          <div style="border-top: 1px solid black; width: 100%; margin-bottom: 0.5rem; margin-top: 1rem;margin-bottom: 1rem;"></div>
-
-        //         <p style="margin-top: 9px; margin-bottom: 9px; font-size: 15px;font-weight: bolder;">Package Name</p>
-
-        //          <table style="width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 13px;">
-        //             <thead>
-        //                 <tr style="">
-        //                     <th style=" text-align: left;">Investigation</th>
-        //                     <th style=" text-align: left;">Obtained Value</th>
-        //                     <th style=" text-align: left;">Units</th>
-        //                     <th style=" text-align: center;">Reference Intervals</th>
-        //                 </tr>
-
-        //             </thead>
-
-        //             <tbody style="font-size: 13px;">
-        //             <tr>
-
-        //            <td> <p style="margin-top: 9px; margin-bottom: 9px; font-size: 14px;"><strong>Profile Name</strong></p></td>
-        //         </tr>
-        //                 <tr>
-        //                     <td style=" text-align: left; max-width: 9.5rem; margin-right: 0.5rem;">IM0016-THYROID STIMULATING HORMONE (TSH), SERUM</td>
-        //                     <td style=" text-align: left;">0.01</td>
-        //                     <td style=" text-align: left;">uIU/ml</td>
-        //                     <td style=" text-align: center;">0.27 - 4.2</td>
-        //             </tbody>
-        //             </table>
-
-        //         </div>
-        //         <div style="border-top: 1px solid black; width: 100%;margin-top: 0.5rem;"></div>
-
-        //     </div>
-
-        // </div>
-        // </body>
-
-        // <div style="font-size: 12px; position: relative; padding: 9px; background-image: url('http://localhost:5000/images/reportbg.png'); pb-10; background-size: contain; max-width: 100%; background-repeat: no-repeat; padding-bottom: 2rem; padding-left: 2rem; padding-right: 2rem; height: 95vh; margin-top: 1rem;">
-        // </div>
-        // <div style="font-size: 12px; position: relative; padding: 9px; background-image: url('http://localhost:5000/images/reportbg.png'); pb-10; background-size: contain; max-width: 100%; background-repeat: no-repeat; padding-bottom: 2rem; padding-left: 2rem; padding-right: 2rem; height: 95vh; margin-top: 1rem;">
-        // </div>
-        // </body>
-
-        // </html>
-        //     `
       },
       {
-        responseType: "blob", // Tell axios to expect a binary response (PDF)
+        responseType: "blob",
       }
     );
 
-    // Create a Blob object from the PDF data
     const pdfBlob = new Blob([response.data], { type: "application/pdf" });
 
-
-
-    // Create a URL for the Blob to be used with anchor tag for download
     const pdfUrl = URL.createObjectURL(pdfBlob);
 
-    console.log(pdfUrl, "pdfUrl");
-    
+    // const downloadLink = document.createElement("a");
+    // downloadLink.href = pdfUrl;
+    // downloadLink.download = "generated_table.pdf";
+    // downloadLink.click();
 
-    // Create an anchor element and trigger click to initiate download
-    const downloadLink = document.createElement("a");
-    downloadLink.href = pdfUrl;
-    downloadLink.download = "generated_table.pdf";
-    downloadLink.click();
-
-    // Revoke the URL object to free up resources
-    URL.revokeObjectURL(pdfUrl);
-    return pdfBlob;
+    // URL.revokeObjectURL(pdfUrl);
+    return pdfUrl;
   } catch (error) {
     console.error(error);
-    // Handle error
   }
 };
