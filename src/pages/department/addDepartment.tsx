@@ -4,10 +4,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import * as z from "zod";
 import { toFormikValidationSchema } from "zod-formik-adapter";
 import { Formik } from "formik";
-import FormInput from "../FormikComponents/FormInput";
-import FormSelect from "../FormikComponents/FormSelect";
-import { getDepartment } from "../../Api";
-import FormUpload from "../FormikComponents/FormUpload";
+import FormInput from "../../Components/FormikComponents/FormInput";
+import { api, getDepartment } from "../../Api";
+import FormUpload from "../../Components/FormikComponents/FormUpload";
+import { Button } from "../../ui/Buttons";
 
 const FormSchema = z.object({
   name: z.string().min(3, "Name must contain atleast 3 characters").max(50),
@@ -71,13 +71,15 @@ function AddDepartment() {
             onSubmit={async (values, { setSubmitting }) => {
               setSubmitting(true);
 
+              const body = {
+                name: values.name,
+                doctor: values.doctor,
+                doctorSignature: values.doctorSignature,
+              };
+
               if (department) {
-                const res = await axios
-                  .put(`http://localhost:5000/department/update/${id}`, {
-                    name: values.name,
-                    doctor: values.doctor,
-                    doctorSignature: values.doctorSignature,
-                  })
+                await api
+                  .put(`/department/update/${id}`, body)
                   .then((res) => {
                     if (res.status === 200) {
                       navigate("/department");
@@ -88,12 +90,8 @@ function AddDepartment() {
                 return;
               }
 
-              const res = await axios
-                .post("http://localhost:5000/department/add", {
-                  name: values.name,
-                  doctor: values.doctor,
-                  doctorSignature: values.doctorSignature,
-                })
+              await api
+                .post("/department/add", body)
                 .then((res) => {
                   if (res.status === 200) {
                     navigate("/department");
@@ -103,9 +101,9 @@ function AddDepartment() {
               setSubmitting(false);
             }}
           >
-            {({ handleSubmit, isSubmitting, values, errors }) => {
+            {({ handleSubmit, isSubmitting }) => {
               return (
-                <form onSubmit={handleSubmit} className="px-2">
+                <form onSubmit={handleSubmit}>
                   <div className="flex flex-row flex-wrap w-full justify-between">
                     <FormInput
                       name="name"
@@ -124,23 +122,11 @@ function AddDepartment() {
                       placeholder="Doctor Signature"
                     />
                   </div>
-                  <button
+                  <Button
                     type="submit"
-                    disabled={isSubmitting}
-                    className={` ${
-                      isSubmitting
-                        ? "bg-gray-200 hover:bg-gray-100 text-gray-500"
-                        : "bg-blue-500  hover:bg-blue-700  text-white"
-                    } font-bold py-2 px-3 text-sm rounded m-3`}
-                  >
-                    Add Department{" "}
-                    {isSubmitting && (
-                      <div
-                        className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
-                        role="status"
-                      ></div>
-                    )}
-                  </button>
+                    loading={isSubmitting}
+                    label="Add Department"
+                  />
                 </form>
               );
             }}

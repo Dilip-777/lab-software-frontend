@@ -1,21 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom';
-import * as z from 'zod';
-import { toFormikValidationSchema } from 'zod-formik-adapter';
-import { FieldArray, Formik } from 'formik';
-import FormInput from '../FormikComponents/FormInput';
-import FormSelect from '../FormikComponents/FormSelect';
-import { api, getDepartments, getPackage, getProfile, getProfiles, getTest, getTests } from '../../Api';
-import NoteModal from '../NoteModal';
-import Autocomplete from '../Profile/autocomplete';
-import Test from '../Profile/TestandReferences';
-import ReferenceModal from '../Profile/ReferencesModal';
-import Divider from '../../util/Divider';
-import FormInput1 from '../FormikComponents/FormInputWithSelect';
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import * as z from "zod";
+import { toFormikValidationSchema } from "zod-formik-adapter";
+import { Formik } from "formik";
+import FormInput from "../../Components/FormikComponents/FormInput";
+import { api, getPackage, getProfiles, getTest, getTests } from "../../Api";
+import NoteModal from "../../Components/NoteModal";
+import Autocomplete from "../../Components/Profile/autocomplete";
+import Test from "../../Components/Profile/TestandReferences";
+import ReferenceModal from "../../Components/Profile/ReferencesModal";
+import Divider from "../../ui/Divider";
+import FormInput1 from "../../Components/FormikComponents/FormInputWithSelect";
+import { Button } from "../../ui/Buttons";
 
 const FormSchema = z.object({
-  name: z.string().min(3, 'Name must contain atleast 3 characters').max(50),
+  name: z.string().min(3, "Name must contain atleast 3 characters").max(50),
   sampletype: z.string(),
   container: z.string(),
   samplesize: z.string(),
@@ -35,17 +34,17 @@ function AddPackage() {
   const [testIds, setTestIds] = useState<Test[]>([]);
   const [profileIds, setProfileIds] = useState<Profile[]>([]);
   const [profiles, setProfiles] = useState<any[]>([]);
-  const [text, setText] = useState(packs?.note || '');
+  const [text, setText] = useState(packs?.note || "");
   const [open, setOpen] = useState(false);
   const [openreference, setOpenreference] = useState(false);
   const [referenceLoading, setReferenceLoading] = useState(false);
   const { id } = useParams();
 
   const createTest = async (name: string) => {
-    const res = await api.post('/test/add', {
+    const res = await api.post("/test/add", {
       testdata: {
         name: name,
-        testcode: name.toLowerCase().replace(/\s/g, ''),
+        testcode: name.toLowerCase().replace(/\s/g, ""),
       },
       referencedata: [],
     });
@@ -54,7 +53,7 @@ function AddPackage() {
   };
 
   const createProfile = async (name: string) => {
-    const res = await api.post('/profile/add', {
+    const res = await api.post("/profile/add", {
       profiledata: {
         name: name,
       },
@@ -104,7 +103,7 @@ function AddPackage() {
   useEffect(() => {
     fetchTests();
     fetchProfiles();
-    if (id !== 'add') {
+    if (id !== "add") {
       fetchPackage();
     }
   }, []);
@@ -116,17 +115,17 @@ function AddPackage() {
   }, [test]);
 
   useEffect(() => {
-    setText(packs?.note || '');
+    setText(packs?.note || "");
   }, [packs]);
 
   const initialValues = {
-    name: packs?.name || '',
-    sampletype: packs?.sampletype || '',
-    container: packs?.container || '',
-    samplesize: packs?.samplesize || '',
-    sampleunit: packs?.sampleunit || 'ml',
-    reportwithin: packs?.reportwithin || '',
-    reportwithinType: packs?.reportwithinType || 'Days',
+    name: packs?.name || "",
+    sampletype: packs?.sampletype || "",
+    container: packs?.container || "",
+    samplesize: packs?.samplesize || "",
+    sampleunit: packs?.sampleunit || "ml",
+    reportwithin: packs?.reportwithin || "",
+    reportwithinType: packs?.reportwithinType || "Days",
     regularprice: packs?.regularprice || 0,
   };
 
@@ -152,7 +151,7 @@ function AddPackage() {
           </svg>
         </div>
       ) : (
-        <div className=" py-5 px-8 rounded-md h-full w-full bg-white shadow-md">
+        <div className=" py-5 px-8 rounded-md h-full w-full bg-white shadow-md pb-20">
           <p className="text-lg m-2">Add Package</p>
 
           {/* <div dangerouslySetInnerHTML={{ __html: text }}></div> */}
@@ -170,30 +169,30 @@ function AddPackage() {
               };
 
               if (packs) {
-                const res = await axios
-                  .put(`http://localhost:5000/package/update/${packs.id}`, {
+                await api
+                  .put(`/package/update/${packs.id}`, {
                     packagedata,
                     tests: testIds,
                     profiles: profileIds,
                   })
                   .then((res) => {
                     if (res.status === 200) {
-                      navigate('/package');
+                      navigate("/package");
                     }
                   })
                   .catch((err) => console.log(err));
                 return;
               }
 
-              const res = await axios
-                .post('http://localhost:5000/package/add', {
+              await api
+                .post("/package/add", {
                   packagedata,
                   tests: testIds,
                   profiles: profileIds,
                 })
                 .then((res) => {
                   if (res.status === 200) {
-                    navigate('/package');
+                    navigate("/package");
                   }
                 })
                 .catch((err) => console.log(err));
@@ -201,30 +200,44 @@ function AddPackage() {
             }}
           >
             {({ handleSubmit, isSubmitting, values, errors }) => {
-              console.log(errors, 'errors');
-
               return (
                 <form onSubmit={handleSubmit} className="px-2">
-                  <div className="grid    md:grid-cols-3 sm:grid-cols-2 xs:grid-cols-1 lg:grid-cols-4 gap-x-9 gap-y-0 w-full">
-                    <FormInput name="name" label="Package Name" placeholder="Enter Package Name" />
+                  <div className="grid md:grid-cols-3 sm:grid-cols-2 xs:grid-cols-1 lg:grid-cols-4 gap-x-9 gap-y-0 w-full">
+                    <FormInput
+                      name="name"
+                      label="Package Name"
+                      placeholder="Enter Package Name"
+                    />
                     {/* <FormInput name="profilecode" label="Role" placeholder="Role" /> */}
 
-                    <FormInput name="sampletype" label="Sample Type" placeholder="Enter the Sample Type" />
-                    <FormInput name="container" label="Container" placeholder="Enter the Container" />
+                    <FormInput
+                      name="sampletype"
+                      label="Sample Type"
+                      placeholder="Enter the Sample Type"
+                    />
+                    <FormInput
+                      name="container"
+                      label="Container"
+                      placeholder="Enter the Container"
+                    />
                     <FormInput1
                       name="samplesize"
                       label="Sample Size"
                       placeholder="Enter the Sample Size"
                       name1="sampleunit"
-                      options1={['ml', 'mg']}
+                      options1={["ml", "mg"]}
                     />
-                    <FormInput name="samplesize" label="Sample Size" placeholder="Enter the Sample Size" />
+                    <FormInput
+                      name="samplesize"
+                      label="Sample Size"
+                      placeholder="Enter the Sample Size"
+                    />
                     <FormInput1
                       name="reportwithin"
                       label="Report Within"
                       placeholder="Enter the Report Within"
                       name1="reportwithinType"
-                      options1={['Days', 'Hours']}
+                      options1={["Days", "Hours"]}
                     />
                     <FormInput
                       name="regularprice"
@@ -232,17 +245,13 @@ function AddPackage() {
                       placeholder="Enter the Regular Price"
                       type="number"
                     />
-                    <button
+                    <Button
+                      label="Note"
                       type="button"
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 text-sm rounded h-10 my-auto w-[4rem] ml-4"
+                      className="h-10 my-auto w-[4rem] ml-4"
                       onClick={() => setOpen(true)}
-                    >
-                      Note
-                    </button>
-
-                    {/* <div className="w-[270px] mx-6"></div> */}
+                    />
                   </div>
-                  {/* <div className=" border-[1px] border-t border-gray-400 w-full my-3"></div> */}
                   <Divider />
 
                   <div className="flex ">
@@ -270,9 +279,15 @@ function AddPackage() {
                       <>
                         <Divider />
                         <div className="my-1">
-                          <p className="font-semibold text-md text-gray-600">Tests:</p>
+                          <p className="font-semibold text-md text-gray-600">
+                            Tests:
+                          </p>
                           {testIds.map((test) => (
-                            <Test handleOpen={handleClick} test={test} setTestIds={setTestIds} />
+                            <Test
+                              handleOpen={handleClick}
+                              test={test}
+                              setTestIds={setTestIds}
+                            />
                           ))}
                         </div>
                       </>
@@ -281,7 +296,9 @@ function AddPackage() {
                       <>
                         <Divider />
                         <div className="my-1">
-                          <p className="font-semibold text-md text-gray-600">Profiles:</p>
+                          <p className="font-semibold text-md text-gray-600">
+                            Profiles:
+                          </p>
                           {profileIds.map((profile) => (
                             <Test
                               // handleOpen={handleClick}
@@ -293,23 +310,12 @@ function AddPackage() {
                       </>
                     )}
                   </div>
-                  <button
+                  <Button
+                    label="Add Package"
                     type="submit"
-                    disabled={isSubmitting}
-                    className={` ${
-                      isSubmitting
-                        ? 'bg-gray-200 hover:bg-gray-100 text-gray-500'
-                        : 'bg-blue-500  hover:bg-blue-700  text-white'
-                    } font-bold py-2 px-3 text-sm rounded my-3`}
-                  >
-                    Add Package{' '}
-                    {isSubmitting && (
-                      <div
-                        className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
-                        role="status"
-                      ></div>
-                    )}
-                  </button>
+                    className="float-right h-10"
+                    loading={isSubmitting}
+                  />
                 </form>
               );
             }}
@@ -325,7 +331,12 @@ function AddPackage() {
         loading={referenceLoading}
       />
 
-      <NoteModal text={text} setText={setText} open={open} handleClose={() => setOpen(false)} />
+      <NoteModal
+        text={text}
+        setText={setText}
+        open={open}
+        handleClose={() => setOpen(false)}
+      />
     </div>
   );
 }

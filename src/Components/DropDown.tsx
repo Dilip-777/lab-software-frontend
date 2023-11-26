@@ -23,7 +23,7 @@ export default function DropDown({
   return (
     <Menu as="div" className="relative inline-block text-left">
       <div>
-        <Menu.Button className="inline-flex w-full justify-center gap-x-1.5 items-center h-14  text-gray-100 hover:bg-[#1565c0] hover:text-white  px-3 text-sm  font-700 cursor-pointer">
+        <Menu.Button className="inline-flex w-full justify-center gap-x-1.5 items-center h-14  text-gray-100 hover:bg-backgroundHover hover:text-white  px-3 text-sm  font-700 cursor-pointer">
           {navItem.name}
           <ChevronDownIcon
             className="-mr-1 h-5 w-5 text-gray-400"

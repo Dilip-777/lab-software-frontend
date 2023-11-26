@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import SearchBar from "../../util/Searchbar";
+import SearchBar from "../../ui/Searchbar";
 import axios from "axios";
-import Table from "../TablePages/Table";
+import Table from "../../Components/TablePages/Table";
 import { useNavigate } from "react-router-dom";
 import { getDepartments } from "../../Api";
+import { Button } from "../../ui/Buttons";
 
 const headcells: headcell[] = [
   { id: "id", label: "Department Id", align: "left" },
@@ -27,7 +28,7 @@ export default function Departments() {
   }, []);
 
   const handleDelete = async (id: number) => {
-    const res = await axios.delete(`http://localhost:5000/department/delete`, {
+    await axios.delete(`http://localhost:5000/department/delete`, {
       data: {
         id,
       },
@@ -47,12 +48,16 @@ export default function Departments() {
             setValue={setFilter}
             placeholder="Search Department"
           />
-          <button
+          {/* <button
             onClick={() => navigate("/department/add")}
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 text-sm rounded"
           >
             Add Department
-          </button>
+          </button> */}
+          <Button
+            onClick={() => navigate("/department/add")}
+            label="Add Department"
+          />
         </div>
         <div className="overflow-x-auto">
           <div className="p-1.5 w-full inline-block align-middle">

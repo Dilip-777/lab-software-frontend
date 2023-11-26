@@ -3,13 +3,14 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import * as z from "zod";
 import { toFormikValidationSchema } from "zod-formik-adapter";
-import { FieldArray, Formik } from "formik";
+import { Formik } from "formik";
 import FormInput from "../../Components/FormikComponents/FormInput";
 import FormSelect from "../../Components/FormikComponents/FormSelect";
-import { getDepartments, getTest } from "../../Api";
+import { api, getDepartments, getTest } from "../../Api";
 import NoteModal from "../../Components/NoteModal";
 import ReferenceModal from "../../Components/Test/referencesModal";
 import FormInput1 from "../../Components/FormikComponents/FormInputWithSelect";
+import { Button } from "../../ui/Buttons";
 
 const referenceSchema = z.object({
   gender: z.string(),
@@ -18,7 +19,7 @@ const referenceSchema = z.object({
   lowerValue: z.number(),
   upperValue: z.number(),
   unit: z.string(),
-  note: z.string().optional()
+  note: z.string().optional(),
 });
 
 const FormSchema = z.object({
@@ -87,7 +88,7 @@ function AddTest() {
           lowerValue: r.lowerValue,
           upperValue: r.upperValue,
           unit: r.unit,
-          note: r.note
+          note: r.note,
         }))
       : [
           {
@@ -97,12 +98,10 @@ function AddTest() {
             lowerValue: 0,
             upperValue: 0,
             unit: "",
-            note: ""
+            note: "",
           },
         ],
   };
-
-  console.log(text, "text");
 
   return (
     <div className="p-5 w-full ">
@@ -150,10 +149,8 @@ function AddTest() {
               };
 
               if (test) {
-                console.log(text, "slkjfslkfjslkfjslkfjlkj");
-
-                const res = await axios
-                  .put(`http://localhost:5000/test/update/${test.test.id}`, {
+                await api
+                  .put(`/test/update/${test.test.id}`, {
                     testdata,
                     referencedata: references,
                     note: text,
@@ -167,8 +164,8 @@ function AddTest() {
                 return;
               }
 
-              const res = await axios
-                .post("http://localhost:5000/test/add", {
+              await api
+                .post("/test/add", {
                   testdata: {
                     ...rest,
                     departmentId: department?.id,
@@ -211,7 +208,6 @@ function AddTest() {
                         label: d.name,
                       }))}
                       name="departmentId"
-                     
                     />
                     <FormInput
                       name="sampletype"
@@ -258,41 +254,25 @@ function AddTest() {
                       placeholder="Enter the Regular Price"
                       type="number"
                     />
-                    <button
+                    <Button
                       type="button"
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 text-sm rounded h-10 my-auto"
                       onClick={() => setOpen(true)}
-                    >
-                      Note
-                    </button>
-                    <button
+                      className="h-10 my-auto"
+                      label="Note"
+                    />
+                    <Button
                       type="button"
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 text-sm rounded h-10 my-auto"
                       onClick={() => setOpen1(true)}
-                    >
-                      References
-                    </button>
+                      className="h-10 my-auto"
+                      label="References"
+                    />
                   </div>
-                  {/* <div className=" border-[1px] border-t border-gray-400 w-full my-3"></div> */}
-
-                  <div></div>
-                  <button
+                  <Button
                     type="submit"
-                    disabled={isSubmitting}
-                    className={` ${
-                      isSubmitting
-                        ? "bg-gray-200 hover:bg-gray-100 text-gray-500"
-                        : "bg-blue-500  hover:bg-blue-700  text-white"
-                    } font-bold py-2 px-3 float-right text-sm rounded my-3`}
-                  >
-                    Submit{" "}
-                    {isSubmitting && (
-                      <div
-                        className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
-                        role="status"
-                      ></div>
-                    )}
-                  </button>
+                    loading={isSubmitting}
+                    label="Submit"
+                    className="float-right"
+                  />
                   <ReferenceModal
                     open={open1}
                     handleClose={() => {

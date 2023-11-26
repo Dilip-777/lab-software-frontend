@@ -1,16 +1,15 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
-import { getDepartments } from "../../Api";
-import { generateReport } from "../../util/generateReport";
-import Loader from "../../util/Loader";
-import { Button } from "../../util/Buttons";
+import { api, getDepartments } from "../../Api";
+import { generateReport } from "../../ui/generateReport";
+import Loader from "../../ui/Loader";
+import { Button } from "../../ui/Buttons";
 
 interface props {
   isOpen: boolean;
   closeModal: () => void;
   order: Order;
   patient: Patient | undefined;
-  pdfUrl: string;
 }
 
 interface selected {
@@ -26,10 +25,20 @@ export default function PreviewModal({
 }: props) {
   const [pdfUrl, setPdfUrl] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
-  const [departments, setDoctors] = useState<Department[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [selectedTests, setSelectedTests] = useState<selected[]>([]);
   const [selectedDepartments, setSelectedDepartments] = useState<number[]>([]);
-  const [letterhead, setLetterhead] = useState<boolean>(true);
+  const [printSetting, setPrintSetting] = useState<PrintSetting | undefined>(
+    undefined
+  );
+  const [letterhead, setLetterhead] = useState<boolean>(
+    printSetting?.uploadletterhead || false
+  );
+
+  const fetchPrintSetting = async () => {
+    const res = await api.get("/setting/getSettings");
+    if (res.data.settings) setPrintSetting(res.data.settings);
+  };
 
   const fetchPDF = async (selected?: selected[]) => {
     setLoading(true);
@@ -44,6 +53,7 @@ export default function PreviewModal({
         selectedDepartments.includes(d.id)
       ),
       letterhead,
+      printSetting,
     });
     setPdfUrl(url as string);
     console.log(url, "url");
@@ -51,22 +61,21 @@ export default function PreviewModal({
     setLoading(false);
   };
 
-  const fetchDoctors = async () => {
+  const fetchDepartments = async () => {
     const data = await getDepartments();
-    setDoctors(data);
+    setDepartments(data);
   };
 
   useEffect(() => {
     handleclickall();
     fetchPDF();
-    fetchDoctors();
+    fetchDepartments();
+    fetchPrintSetting();
   }, [order, patient]);
 
   useEffect(() => {
-    fetchDoctors();
+    fetchDepartments();
   }, [pdfUrl]);
-
-  console.log(departments);
 
   const getValidity = (pkg: OrderPackage) => {
     pkg.tests.forEach((test) => {
@@ -97,8 +106,6 @@ export default function PreviewModal({
       );
     }
   };
-
-  console.log(selectedTests, "selectedTests");
 
   const handleclickall = (e?: any) => {
     console.log(e?.target?.checked, "checked");

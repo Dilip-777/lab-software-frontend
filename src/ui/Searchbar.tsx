@@ -12,8 +12,8 @@ export default function SearchBar({
   classname,
 }: Props) {
   return (
-    <div className="relative max-w-sm flex items-center w-full h-12 rounded-lg focus-within:shadow-lg border-2 border-gray-400 focus-within:border-gray-500 bg-white overflow-hidden ml-[10px]">
-      <div className="grid place-items-center h-full w-12 text-gray-300">
+    <div className="relative max-w-sm flex items-center w-full h-12 rounded-lg focus-within:shadow-lg border-2 text-gray-600 border-gray-400 focus-within:border-palatinateBlue bg-white overflow-hidden ml-[10px]">
+      <div className="grid place-items-center h-full w-12 ">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="h-6 w-6"
@@ -31,7 +31,7 @@ export default function SearchBar({
       </div>
 
       <input
-        className="peer h-full w-full outline-none text-sm text-gray-700 pr-2 border-gray-700"
+        className="peer h-full w-full outline-none text-sm  pr-2"
         type="text"
         placeholder={placeholder}
         value={value}

@@ -1,6 +1,6 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
-import Divider from "../../util/Divider";
+import Divider from "../../ui/Divider";
 import { api } from "../../Api";
 import TestValue from "./testValue";
 import _ from "lodash";
@@ -21,17 +21,14 @@ export default function CollectionModal({
   order,
   patient,
   fetchOrders,
-  fetchPatient
+  fetchPatient,
 }: props) {
   const [changes, setChanges] = useState<any[]>([]);
   const [discard, setDiscard] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState(false);
- 
- const [timechanges, setTimeChanges] = useState<any>({id: order?.id});
 
-
-
+  const [timechanges, setTimeChanges] = useState<any>({ id: order?.id });
 
   const handleChange = (value: any, field: string) => {
     // Create a new object by spreading the current timechanges and updating the specific field
@@ -39,23 +36,21 @@ export default function CollectionModal({
     setTimeChanges(updatedTimeChanges);
   };
 
+  console.log(
+    {
+      id: order?.id,
+      orderDate: new Date(timechanges.orderDate as string),
+      collectiontime: new Date(timechanges.collectiontime as string),
+      processtime: new Date(timechanges.processtime as string),
+      reporttime: new Date(timechanges.reporttime as string),
+    },
+    "outside function timechanges"
+  );
 
-  console.log({
-        id: order?.id,
-        orderDate: new Date(timechanges.orderDate as string),
-        collectiontime: new Date(timechanges.collectiontime as string),
-        processtime: new Date(timechanges.processtime as string),
-        reporttime: new Date(timechanges.reporttime as string),
-      }, "outside function timechanges");
-
-      console.log(timechanges, " outside timechanges");
-      
-    
-
-  
+  console.log(timechanges, " outside timechanges");
 
   const handleSave = async () => {
-    setLoading(true)
+    setLoading(true);
     await api.put("/order/editorder", {
       data: {
         id: order?.id,
@@ -63,12 +58,9 @@ export default function CollectionModal({
         collectiontime: timechanges.collectiontime as string,
         processtime: timechanges.processtime as string,
         reporttime: timechanges.reporttime as string,
-      }
+      },
     });
-      
-      
-    
-    
+
     // setLoading(true);
     // await api.put("/order/updateOrder", {
     //   tests: changes,
@@ -138,17 +130,35 @@ export default function CollectionModal({
                     Collection Time
                   </Dialog.Title>
                   <Divider />
-                  <div
-                    className="flex flex-col overflow-y-auto"
-                    
-                  >
-                    
-                    <InputField order={order} input={input} label="Appointment/Registered Date Time" id="orderDate" handleChange={handleChange} />
-                    <InputField order={order} input={input} label="Sample Collection Date Time" id="collectiontime" handleChange={handleChange} />
-                    <InputField order={order} input={input} label="Sample Process Date Time" id="processtime" handleChange={handleChange} />
-                    <InputField order={order} input={input} label="Report on/Appointment Done Date Time" id="reporttime" handleChange={handleChange} />
-                   
-                   
+                  <div className="flex flex-col overflow-y-auto">
+                    <InputField
+                      order={order}
+                      input={input}
+                      label="Appointment/Registered Date Time"
+                      id="orderDate"
+                      handleChange={handleChange}
+                    />
+                    <InputField
+                      order={order}
+                      input={input}
+                      label="Sample Collection Date Time"
+                      id="collectiontime"
+                      handleChange={handleChange}
+                    />
+                    <InputField
+                      order={order}
+                      input={input}
+                      label="Sample Process Date Time"
+                      id="processtime"
+                      handleChange={handleChange}
+                    />
+                    <InputField
+                      order={order}
+                      input={input}
+                      label="Report on/Appointment Done Date Time"
+                      id="reporttime"
+                      handleChange={handleChange}
+                    />
                   </div>
                   {input && (
                     <div className="flex justify-end mt-auto fixed bottom-5 right-5">
@@ -195,40 +205,41 @@ export default function CollectionModal({
 }
 
 interface inputprops {
-    order?: Order;
-    input: boolean
-    label: string;
-    handleChange: (value: any,  field: string) => void
-    id: string;
+  order?: Order;
+  input: boolean;
+  label: string;
+  handleChange: (value: any, field: string) => void;
+  id: string;
 }
 
-const InputField = ({order, input, label, handleChange, id}: inputprops) => {
-    const [value, setValue] = useState(_.get(order,id) ? moment(_.get(order, id)).format().slice(0,16): "");    
-    return (
-        <div className="flex flex-col my-5">
-            <label className="text-sm font-medium mb-1 text-gray-600">{label} :</label>
-            {!input ? (
-            <p className="text-sm text-gray-500">
-              {value}
-            </p>
-          ) : (
-            <div className=" border-b-[1px] focus-within:border-b-2 focus-within:border-teal-500 border-gray-500 pb-0 px-1 max-w-[50%] text-sm ">
-              <input
-                // ref={firstInputElementRef}
-                value={value}
-                onChange={(e) => {
-                  setValue(e.target.value);
-                  handleChange(e.target.value, id)
-                }}
-                type="datetime-local"
-                className=" border-none focus:outline-none bg-transparent "
-                
-              />
-            </div>
-          )}
+const InputField = ({ order, input, label, handleChange, id }: inputprops) => {
+  const [value, setValue] = useState(
+    _.get(order, id) ? moment(_.get(order, id)).format().slice(0, 16) : ""
+  );
+  return (
+    <div className="flex flex-col my-5">
+      <label className="text-sm font-medium mb-1 text-gray-600">
+        {label} :
+      </label>
+      {!input ? (
+        <p className="text-sm text-gray-500">{value}</p>
+      ) : (
+        <div className=" border-b-[1px] focus-within:border-b-2 focus-within:border-teal-500 border-gray-500 pb-0 px-1 max-w-[50%] text-sm ">
+          <input
+            // ref={firstInputElementRef}
+            value={value}
+            onChange={(e) => {
+              setValue(e.target.value);
+              handleChange(e.target.value, id);
+            }}
+            type="datetime-local"
+            className=" border-none focus:outline-none bg-transparent "
+          />
         </div>
-    )
-}
+      )}
+    </div>
+  );
+};
 
 const TableHeader = () => {
   return (

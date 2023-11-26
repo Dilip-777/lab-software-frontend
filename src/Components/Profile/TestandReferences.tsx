@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 
 import { getTest } from "../../Api";
+import { Button } from "../../ui/Buttons";
 
 function Test({
   test,
@@ -31,13 +32,12 @@ function Test({
         </div>
         <div className="min-w-[30%]">
           {handleOpen && (
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 text-sm rounded h-10 my-auto"
-              type="button"
+            <Button
+              label="References"
               onClick={() => handleOpen(test)}
-            >
-              References
-            </button>
+              className="h-10 my-auto"
+              type="button"
+            />
           )}
         </div>
         <div className="w-8 h-8 p-1 hover:bg-red-50 rounded-full">

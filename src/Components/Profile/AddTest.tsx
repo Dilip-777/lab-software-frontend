@@ -1,9 +1,9 @@
-import { XMarkIcon } from '@heroicons/react/20/solid';
-import { Button } from '../../util/Buttons';
-import Autocomplete from './autocomplete';
-import Divider from '../../util/Divider';
-import Test from './TestandReferences';
-import { useEffect, useState } from 'react';
+import { XMarkIcon } from "@heroicons/react/20/solid";
+import { Button } from "../../ui/Buttons";
+import Autocomplete from "./autocomplete";
+import Divider from "../../ui/Divider";
+import Test from "./TestandReferences";
+import { useEffect, useState } from "react";
 
 interface AddTestProps {
   tests?: Test[];
@@ -11,7 +11,12 @@ interface AddTestProps {
   createTest: (name: string) => Promise<void>;
   testIds: any[];
   heading: string;
-  handleheadings: (oldheading: string, newHeading?: string, test?: Test, oldtest?: Test) => void;
+  handleheadings: (
+    oldheading: string,
+    newHeading?: string,
+    test?: Test,
+    oldtest?: Test
+  ) => void;
   addTests: (name: string, query: string, comparator: string) => void;
   handleClick: (id: any) => void;
   selected: Test[];
@@ -30,18 +35,18 @@ const AddTest = ({
   selected,
   addHeading,
 }: AddTestProps) => {
-  const [value, setValue] = useState(heading || '');
+  const [value, setValue] = useState(heading || "");
 
   useEffect(() => {
-    setValue(heading || '');
+    setValue(heading || "");
   }, [heading]);
 
   const handleFieldKeyDown = (e: any) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleheadings(heading, value);
       if (!heading) {
-        setValue('');
+        setValue("");
       }
     }
   };
@@ -57,14 +62,14 @@ const AddTest = ({
             onBlur={(e) => {
               handleheadings(heading, value);
               if (!heading) {
-                setValue('');
+                setValue("");
               }
             }}
             onKeyDown={handleFieldKeyDown}
             onSubmit={() => {
               handleheadings(heading, value);
               if (!heading) {
-                setValue('');
+                setValue("");
               }
             }}
             placeholder="New Heading"
@@ -74,15 +79,22 @@ const AddTest = ({
 
         {addHeading &&
           (heading ? (
-            <div className="w-8 h-8 p-1 hover:bg-red-50 rounded-full" onClick={() => handleheadings(heading, '')}>
-              <XMarkIcon fontSize="10px" color="red" className="cursor-pointer" />
+            <div
+              className="w-8 h-8 p-1 hover:bg-red-50 rounded-full"
+              onClick={() => handleheadings(heading, "")}
+            >
+              <XMarkIcon
+                fontSize="10px"
+                color="red"
+                className="cursor-pointer"
+              />
             </div>
           ) : (
             <Button
               type="button"
               label="Add"
-              onClick={() => handleheadings('', value)}
-              className="h-[35px] self-end my-4"
+              onClick={() => handleheadings("", value)}
+              className="h-9 self-end my-4"
             />
           ))}
       </div>
@@ -93,7 +105,9 @@ const AddTest = ({
               handleOpen={handleClick}
               test={test}
               setTestIds={setTestIds}
-              handleDelete={(test) => handleheadings(heading, undefined, undefined, test)}
+              handleDelete={(test) =>
+                handleheadings(heading, undefined, undefined, test)
+              }
             />
           ))}
         </div>
@@ -106,7 +120,6 @@ const AddTest = ({
           createTest={createTest}
           handleChange={addTests}
           testIds={testIds}
-          // label="Tests"
           placeholder="Select the Tests"
           heading={heading}
           className="w-1/2"

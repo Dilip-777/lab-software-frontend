@@ -1,24 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom';
-import * as z from 'zod';
-import { toFormikValidationSchema } from 'zod-formik-adapter';
-import { Formik, FormikConsumer } from 'formik';
-import FormInput from '../FormikComponents/FormInput';
-import FormSelect from '../FormikComponents/FormSelect';
-import { api, getPriceLists, getRefDoctors, getRefLab, getRefLabs, getTests } from '../../Api';
-import Autocomplete from '../Profile/autocomplete';
-import Autocomplete1 from '../../util/Autocomplete';
-import Table from './testTable';
-import FormInput1 from '../FormikComponents/FormInputWithSelect';
-import TextArea from '../FormikComponents/TextArea';
-import { Button } from '../../util/Buttons';
-import PatientAutocomplete from '../../util/Patientnameautocomplete';
-import { generatepdf } from '../../util/generatepdf';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
+import * as z from "zod";
+import { toFormikValidationSchema } from "zod-formik-adapter";
+import { Formik, FormikConsumer } from "formik";
+import FormInput from "../FormikComponents/FormInput";
+import FormSelect from "../FormikComponents/FormSelect";
+import {
+  api,
+  getPriceLists,
+  getRefDoctors,
+  getRefLab,
+  getRefLabs,
+  getTests,
+} from "../../Api";
+import Autocomplete from "../Profile/autocomplete";
+import Autocomplete1 from "../../ui/Autocomplete";
+import Table from "./testTable";
+import FormInput1 from "../FormikComponents/FormInputWithSelect";
+import TextArea from "../FormikComponents/TextArea";
+import { Button } from "../../ui/Buttons";
+import PatientAutocomplete from "../../ui/Patientnameautocomplete";
+import { generatepdf } from "../../ui/generatepdf";
 
 const HeadCells: headcell[] = [
-  { id: 'name', label: 'Name' },
-  { id: 'regularprice', label: 'Price' },
+  { id: "name", label: "Name" },
+  { id: "regularprice", label: "Price" },
 ];
 
 const FormSchema = z.object({
@@ -61,7 +68,7 @@ function PatientCreation() {
   const [order, setOrder] = useState<Order | undefined>(undefined);
 
   const fetchPriceList = async () => {
-    const data = await api.get('/pricelist/labels');
+    const data = await api.get("/pricelist/labels");
     setPriceList(data.data.data);
   };
 
@@ -72,8 +79,8 @@ function PatientCreation() {
   };
 
   const fetchTests = async () => {
-    const res = await api.get('/test/getpackagespricelist');
-    const data = await getPriceLists('Test');
+    const res = await api.get("/test/getpackagespricelist");
+    const data = await getPriceLists("Test");
 
     setTests1(data?.tests || []);
     setTests(res.data?.data || []);
@@ -85,12 +92,12 @@ function PatientCreation() {
   };
 
   const fetchPatients = async () => {
-    const res = await api.get('/patient/getPatients');
+    const res = await api.get("/patient/getPatients");
     setPatients(res.data?.data || []);
   };
 
   const fetchOrder = async () => {
-    const res = await api.get('/order/getOrder/' + id);
+    const res = await api.get("/order/getOrder/" + id);
     setOrder(res.data?.data);
     setPatient(res.data?.data?.patient);
     setreflab(res.data?.data?.lab);
@@ -100,7 +107,11 @@ function PatientCreation() {
     const packagenames = res.data?.data?.packages.map((t: any) => t.name);
     const profilenames = res.data?.data?.profiles.map((t: any) => t.name);
 
-    setSelectedTests(tests.filter((t) => [...testnames, ...profilenames, ...packagenames].includes(t.name)));
+    setSelectedTests(
+      tests.filter((t) =>
+        [...testnames, ...profilenames, ...packagenames].includes(t.name)
+      )
+    );
     setLoading(false);
   };
 
@@ -113,7 +124,7 @@ function PatientCreation() {
   }, []);
 
   useEffect(() => {
-    if (id !== 'add') {
+    if (id !== "add") {
       fetchOrder();
     } else {
       setLoading(false);
@@ -121,31 +132,33 @@ function PatientCreation() {
   }, [tests, reflabs, refdoctors]);
 
   const initialValues = {
-    name: order?.patient.name || '',
-    nameprefix: order?.patient.nameprefix || 'Mr.',
-    identityType: order?.patient.identityType || 'Aadhar',
-    identityNumber: order?.patient.identityNumber || '',
-    gender: '',
-    phonenumber: order?.patient.phonenumber || '',
-    emailId: order?.patient.emailId || '',
-    age: order?.patient.age || '',
-    agesuffix: order?.patient.agesuffix || 'Years',
-    address: order?.patient.address || '',
-    pricelist: '',
+    name: order?.patient.name || "",
+    nameprefix: order?.patient.nameprefix || "Mr.",
+    identityType: order?.patient.identityType || "Aadhar",
+    identityNumber: order?.patient.identityNumber || "",
+    gender: "",
+    phonenumber: order?.patient.phonenumber || "",
+    emailId: order?.patient.emailId || "",
+    age: order?.patient.age || "",
+    agesuffix: order?.patient.agesuffix || "Years",
+    address: order?.patient.address || "",
+    pricelist: "",
     totalamount: order?.totalamount || 0,
     discount: order?.discount || 0,
-    discountType: order?.discountType || 'Percentage',
+    discountType: order?.discountType || "Percentage",
     netamount: order?.netamount || 0,
-    paymentmethod: order?.paymentmethod || '',
+    paymentmethod: order?.paymentmethod || "",
     paidamount: order?.paidamount || 0,
     balanceamount: order?.balanceamount || 0,
-    remarks: order?.remarks || '',
+    remarks: order?.remarks || "",
   };
 
   const getTotalAmount = (pricelist: string) => {
     let totalamount = 0;
     selectedTests.forEach((test) => {
-      totalamount += pricelist ? test.pricelist.find((p: any) => p.label === pricelist)?.price || 0 : test.regularprice;
+      totalamount += pricelist
+        ? test.pricelist.find((p: any) => p.label === pricelist)?.price || 0
+        : test.regularprice;
     });
     return totalamount;
   };
@@ -173,7 +186,7 @@ function PatientCreation() {
         </div>
       ) : (
         <div className=" pt-5 pb-[5rem] px-8 rounded-md h-full w-full bg-white shadow-md">
-          <p className="text-lg m-2">{order ? 'Edit Order' : 'Add Patient'}</p>
+          <p className="text-lg m-2">{order ? "Edit Order" : "Add Patient"}</p>
           <div className=" border-[1px] border-t border-gray-500 w-full my-3"></div>
           <Formik
             initialValues={initialValues}
@@ -182,12 +195,15 @@ function PatientCreation() {
               setSubmitting(true);
               const tests = selectedTests.map((test) => ({
                 ...test,
-                price: test.pricelist.find((p: any) => p.label === values.pricelist)?.price || 0,
+                price:
+                  test.pricelist.find((p: any) => p.label === values.pricelist)
+                    ?.price || 0,
               }));
 
-              console.log(selectedTests, 'selectedTests');
+              console.log(selectedTests, "selectedTests");
 
-              const discount = values.discountType === 'Percentage' ? ' %' : ' ₹';
+              const discount =
+                values.discountType === "Percentage" ? " %" : " ₹";
 
               const bloburl = await generatepdf({
                 tests,
@@ -202,7 +218,9 @@ function PatientCreation() {
               });
 
               const packages = selectedTests.filter((s) => s.profile);
-              const profiles = selectedTests.filter((s) => !s.profile && s.test);
+              const profiles = selectedTests.filter(
+                (s) => !s.profile && s.test
+              );
               const test = selectedTests.filter((s) => !s.profile && !s.test);
               const body = {
                 ...values,
@@ -218,12 +236,12 @@ function PatientCreation() {
               };
 
               try {
-                const patient = await api.post('/patient/add', body);
+                const patient = await api.post("/patient/add", body);
                 // await api.post('/order/testing', body);
                 if (!printBill) {
-                  const a = document.createElement('a');
-                  a.href = bloburl || '';
-                  a.target = '_blank';
+                  const a = document.createElement("a");
+                  a.href = bloburl || "";
+                  a.target = "_blank";
                   a.click();
                 }
                 window.location.reload();
@@ -231,19 +249,28 @@ function PatientCreation() {
                 console.log(error);
               }
 
-              console.log(values, 'values');
+              console.log(values, "values");
 
               setSubmitting(false);
             }}
           >
-            {({ handleSubmit, isSubmitting, errors, values, setFieldValue }) => {
-              console.log(errors, 'errors');
+            {({
+              handleSubmit,
+              isSubmitting,
+              errors,
+              values,
+              setFieldValue,
+            }) => {
+              console.log(errors, "errors");
 
-              if ((values.nameprefix === 'Ms.' || values.nameprefix === 'Mrs.') && values.gender !== 'Female') {
-                setFieldValue('gender', 'Female');
+              if (
+                (values.nameprefix === "Ms." || values.nameprefix === "Mrs.") &&
+                values.gender !== "Female"
+              ) {
+                setFieldValue("gender", "Female");
               }
-              if (values.nameprefix === 'Mr.' && values.gender !== 'Male') {
-                setFieldValue('gender', 'Male');
+              if (values.nameprefix === "Mr." && values.gender !== "Male") {
+                setFieldValue("gender", "Male");
               }
 
               if (values.pricelist) {
@@ -255,53 +282,84 @@ function PatientCreation() {
                 reflab?.address !== values.address &&
                 reflab.phonenumber !== values.phonenumber
               ) {
-                setFieldValue('emailId', reflab?.emailId);
-                setFieldValue('address', reflab?.address);
-                setFieldValue('phonenumber', reflab?.phonenumber);
+                setFieldValue("emailId", reflab?.emailId);
+                setFieldValue("address", reflab?.address);
+                setFieldValue("phonenumber", reflab?.phonenumber);
               }
 
-              if (!refdoctor && reflab && reflab?.autoselectpricelist !== values.pricelist) {
-                setFieldValue('pricelist', reflab?.autoselectpricelist);
+              if (
+                !refdoctor &&
+                reflab &&
+                reflab?.autoselectpricelist !== values.pricelist
+              ) {
+                setFieldValue("pricelist", reflab?.autoselectpricelist);
               }
 
-              if (refdoctor && refdoctor?.autoselectpricelist !== values.pricelist) {
-                setFieldValue('pricelist', refdoctor?.autoselectpricelist);
+              if (
+                refdoctor &&
+                refdoctor?.autoselectpricelist !== values.pricelist
+              ) {
+                setFieldValue("pricelist", refdoctor?.autoselectpricelist);
               }
 
               if (values.totalamount !== getTotalAmount(values.pricelist)) {
-                setFieldValue('totalamount', getTotalAmount(values.pricelist));
+                setFieldValue("totalamount", getTotalAmount(values.pricelist));
               }
 
-              if (values.discountType === 'Percentage') {
-                if (values.netamount !== values.totalamount - (values.totalamount * values.discount) / 100) {
-                  setFieldValue('netamount', values.totalamount - (values.totalamount * values.discount) / 100);
+              if (values.discountType === "Percentage") {
+                if (
+                  values.netamount !==
+                  values.totalamount -
+                    (values.totalamount * values.discount) / 100
+                ) {
+                  setFieldValue(
+                    "netamount",
+                    values.totalamount -
+                      (values.totalamount * values.discount) / 100
+                  );
                 }
               }
 
-              if (values.discountType === 'Amount') {
+              if (values.discountType === "Amount") {
                 if (values.netamount !== values.totalamount - values.discount) {
-                  setFieldValue('netamount', values.totalamount - values.discount);
+                  setFieldValue(
+                    "netamount",
+                    values.totalamount - values.discount
+                  );
                 }
               }
 
-              if (values.balanceamount !== values.netamount - values.paidamount) {
-                setFieldValue('balanceamount', values.netamount - values.paidamount);
+              if (
+                values.balanceamount !==
+                values.netamount - values.paidamount
+              ) {
+                setFieldValue(
+                  "balanceamount",
+                  values.netamount - values.paidamount
+                );
               }
 
-              console.log(values, 'values', values.name, 'name');
+              console.log(values, "values", values.name, "name");
 
               if (patient) {
-                if (patient.nameprefix !== values.nameprefix) setFieldValue('nameprefix', patient.nameprefix);
-                if (patient.name !== values.name) setFieldValue('name', patient.name);
-                if (patient.age !== values.age) setFieldValue('age', patient.age);
-                if (patient.agesuffix !== values.agesuffix) setFieldValue('agesuffix', patient.agesuffix);
-                if (patient.gender !== values.gender) setFieldValue('gender', patient.gender);
+                if (patient.nameprefix !== values.nameprefix)
+                  setFieldValue("nameprefix", patient.nameprefix);
+                if (patient.name !== values.name)
+                  setFieldValue("name", patient.name);
+                if (patient.age !== values.age)
+                  setFieldValue("age", patient.age);
+                if (patient.agesuffix !== values.agesuffix)
+                  setFieldValue("agesuffix", patient.agesuffix);
+                if (patient.gender !== values.gender)
+                  setFieldValue("gender", patient.gender);
                 if (!reflab) {
-                  if (patient.phonenumber !== values.phonenumber) setFieldValue('phonenumber', patient.phonenumber);
+                  if (patient.phonenumber !== values.phonenumber)
+                    setFieldValue("phonenumber", patient.phonenumber);
                 }
                 if (patient.identityNumber !== values.identityNumber)
-                  setFieldValue('identityNumber', patient.identityNumber);
-                if (patient.identityType !== values.identityType) setFieldValue('identityType', patient.identityType);
+                  setFieldValue("identityNumber", patient.identityNumber);
+                if (patient.identityType !== values.identityType)
+                  setFieldValue("identityType", patient.identityType);
                 // if(patient.emailId !== values.emailId) setFieldValue("emailId", patient.emailId)
                 // if(patient.address !== values.address) setFieldValue("address", patient.address)
               }
@@ -334,7 +392,7 @@ function PatientCreation() {
                       setFieldValue={setFieldValue}
                       value={values.name}
                       name1="nameprefix"
-                      options1={['Mr.', 'Mrs.', 'Ms.']}
+                      options1={["Mr.", "Mrs.", "Ms."]}
                       name="name"
                     />
 
@@ -346,7 +404,7 @@ function PatientCreation() {
                         type="number"
                         className="!w-[100%] !min-w-0"
                         classname="col-span-1"
-                        options1={['Years', 'Months', 'Days']}
+                        options1={["Years", "Months", "Days"]}
                         name1="agesuffix"
                       />
                       <FormSelect
@@ -354,9 +412,9 @@ function PatientCreation() {
                         label="Gender"
                         placeholder="Select Gender"
                         options={[
-                          { value: 'Male', label: 'Male' },
-                          { value: 'Female', label: 'Female' },
-                          { value: 'Other', label: 'Other' },
+                          { value: "Male", label: "Male" },
+                          { value: "Female", label: "Female" },
+                          { value: "Other", label: "Other" },
                         ]}
                         className="!w-[100%] !min-w-[0px]"
                         classname="col-span-1"
@@ -370,7 +428,7 @@ function PatientCreation() {
                       classname="col-span-2"
                       className="!w-full "
                       name1="identityType"
-                      options={['Aadhar', 'Pan', 'Other']}
+                      options={["Aadhar", "Pan", "Other"]}
                     />
                     <div className="grid grid-cols-2 gap-x-10 col-span-4">
                       {/* <FormInput
@@ -392,7 +450,12 @@ function PatientCreation() {
                         type="number"
                         name="phonenumber"
                       />
-                      <FormInput name="emailId" label="Email Id" placeholder="Enter Email Id" classname="col-span-1" />
+                      <FormInput
+                        name="emailId"
+                        label="Email Id"
+                        placeholder="Enter Email Id"
+                        classname="col-span-1"
+                      />
                       <Autocomplete1
                         item={reflab}
                         handleChange={(v) => {
@@ -486,7 +549,9 @@ function PatientCreation() {
                         headcells={HeadCells}
                         rows={selectedTests}
                         handleDelete={(name) => {
-                          setSelectedTests((prev) => prev.filter((item) => item.name !== name));
+                          setSelectedTests((prev) =>
+                            prev.filter((item) => item.name !== name)
+                          );
                         }}
                         pricelist={values.pricelist}
                       />
@@ -513,8 +578,8 @@ function PatientCreation() {
                         label="Discount Type"
                         placeholder="Select Discount Type"
                         options={[
-                          { value: 'Percentage', label: 'Percentage' },
-                          { value: 'Amount', label: 'Amount' },
+                          { value: "Percentage", label: "Percentage" },
+                          { value: "Amount", label: "Amount" },
                         ]}
                         className="!min-w-0 !w-[9rem] !ml-0"
                       />
@@ -531,9 +596,9 @@ function PatientCreation() {
                       label="Payment Mode"
                       placeholder="Select Payment Mode"
                       options={[
-                        { value: 'Cash', label: 'Cash' },
-                        { value: 'Card', label: 'Card' },
-                        { value: 'Cheque', label: 'Cheque' },
+                        { value: "Cash", label: "Cash" },
+                        { value: "Card", label: "Card" },
+                        { value: "Cheque", label: "Cheque" },
                       ]}
                       className="!min-w-0 !w-[9rem]"
                     />
@@ -568,7 +633,8 @@ function PatientCreation() {
                       className="h-6 w-6"
                     />
                     <label htmlFor="print" className="ml-2">
-                      Continue without opening Generated Bill ( Please Uncheck if you want to open the Generated Bill)
+                      Continue without opening Generated Bill ( Please Uncheck
+                      if you want to open the Generated Bill)
                     </label>
                   </div>
                   <button
@@ -576,11 +642,11 @@ function PatientCreation() {
                     disabled={isSubmitting}
                     className={` ${
                       isSubmitting
-                        ? 'bg-gray-200 hover:bg-gray-100 text-gray-500'
-                        : 'bg-green-600  hover:bg-green-700  text-white'
+                        ? "bg-gray-200 hover:bg-gray-100 text-gray-500"
+                        : "bg-green-600  hover:bg-green-700  text-white"
                     } font-bold py-2 px-3 float-right text-sm rounded my-3`}
                   >
-                    Submit{' '}
+                    Submit{" "}
                     {isSubmitting && (
                       <div
                         className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"

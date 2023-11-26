@@ -1,6 +1,6 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
-import Divider from "../../util/Divider";
+import Divider from "../../ui/Divider";
 import { api } from "../../Api";
 import TestValue from "./testValue";
 import { evaluate } from "mathjs";

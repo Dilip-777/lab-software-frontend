@@ -1,17 +1,17 @@
 import React, { useState, useEffect, Fragment } from "react";
 import { api } from "../../Api";
-import FormSelect from "../../util/FormSelect";
-import Divider from "../../util/Divider";
-import Loader from "../../util/Loader";
+import FormSelect from "../../ui/FormSelect";
+import Divider from "../../ui/Divider";
+import Loader from "../../ui/Loader";
 import { useNavigate } from "react-router-dom";
 import ResultModal from "./resultModal";
 import { Menu, Transition } from "@headlessui/react";
-import { generateReport } from "../../util/generateReport";
+import { generateReport } from "../../ui/generateReport";
 import PreviewModal from "./previewModal";
 import { log } from "console";
 import moment from "moment";
 import CollectionModal from "./collectionModal";
-import DeleteModal from "../../util/DeleteModal";
+import DeleteModal from "../../ui/DeleteModal";
 
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
@@ -678,18 +678,17 @@ export default function PatientStatus() {
                                     {options.map((option) => (
                                       <Menu.Item key={option.value}>
                                         {({ active }) => (
-                                          <a
-                                            href="#"
+                                          <p
                                             onClick={() =>
                                               option.onClick(order)
                                             }
                                             className={classNames(
                                               active ? "bg-gray-100" : "",
-                                              "block px-4 py-2 text-sm text-gray-600 text-left"
+                                              "block px-4 py-2 text-sm text-gray-600 text-left cursor-pointer"
                                             )}
                                           >
                                             {option.value}
-                                          </a>
+                                          </p>
                                         )}
                                       </Menu.Item>
                                     ))}
@@ -733,7 +732,6 @@ export default function PatientStatus() {
           setSelectedOrder(undefined);
           setIsOpen2(false);
         }}
-        pdfUrl={""}
         order={selectedOrder as Order}
         patient={selectedOrder?.patient}
       />

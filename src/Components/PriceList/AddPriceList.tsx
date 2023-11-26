@@ -1,10 +1,10 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { Fragment, useState } from "react";
-import FormSelect from "../../util/FormSelect";
-import Divider from "../../util/Divider";
-import FormInput from "../../util/FormInput";
-import { Button } from "../../util/Buttons";
+import FormSelect from "../../ui/FormSelect";
+import Divider from "../../ui/Divider";
+import FormInput from "../../ui/FormInput";
+import { Button } from "../../ui/Buttons";
 import { api } from "../../Api";
 
 export default function AddPriceList({
@@ -32,7 +32,7 @@ export default function AddPriceList({
 
   async function handleSubmit() {
     setLoading(true);
-    const res = await api.post("/pricelist/add", {
+    await api.post("/pricelist/add", {
       testId: test,
       label,
       price: Number(price),
@@ -49,7 +49,7 @@ export default function AddPriceList({
   return (
     <>
       <div className=" flex items-center justify-center">
-        <Button label="Add Price List" onClick={openModal} />
+        <Button label="Add Price List" className="h-10" onClick={openModal} />
       </div>
 
       <Transition.Root show={isOpen} as={Fragment}>
@@ -99,7 +99,10 @@ export default function AddPriceList({
                         </div>
                       </div>
                       <Divider />
-                      <div className="mt-4">
+                      <div className=" mt-4 max-w-full ">
+                        <p className="font-semibold text-sm my-2">
+                          Select a {type}
+                        </p>
                         <FormSelect
                           value={test}
                           setValue={setTest}
@@ -109,15 +112,15 @@ export default function AddPriceList({
                             value: test.id,
                             label: test.name,
                           }))}
-                          inputClassName="border-gray-800 focus-within:border-gray-900"
-                          divClassName="m-0 ml-0"
+                          divClassName="mx-0"
+                          inputClassName="w-full"
                         />
                         <FormInput
                           value={label}
                           handleChange={(v) => setLabel(v as string)}
                           placeholder="Enter Label"
                           label="Label"
-                          divClassName=" ml-0 mt-5"
+                          divClassName=" mx-0"
                           inputClassName="border-gray-800 focus-within:border-gray-900"
                         />
                         <FormInput
@@ -126,12 +129,12 @@ export default function AddPriceList({
                           placeholder="Enter Price"
                           label="Price"
                           type="number"
-                          divClassName=" ml-0 mt-5"
+                          divClassName="mx-0"
                           inputClassName="border-gray-800 focus-within:border-gray-900"
                         />
                         <Button
                           label="Add"
-                          className="mt-4"
+                          className="mt-4 w-full"
                           loading={loading}
                           onClick={() => handleSubmit()}
                           type="button"

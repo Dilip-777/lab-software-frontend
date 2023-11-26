@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import SearchBar from "../../util/Searchbar";
+import SearchBar from "../../ui/Searchbar";
 import Table from "../TablePages/Table";
-import FormSelect from "../../util/FormSelect";
+import FormSelect from "../../ui/FormSelect";
 import { getDepartments, getRefDoctors, getRefLabs, getTests } from "../../Api";
 
 const createHeadCell = (
@@ -68,8 +68,11 @@ export default function RefDoctors() {
           <div className="p-1.5 w-full inline-block align-middle">
             <Table
               headcells={headcells}
-              rows={refdoctors.filter((reflab) =>
-                reflab.doctorname?.toLowerCase().includes(filter.toLowerCase())
+              rows={refdoctors.filter(
+                (reflab) =>
+                  reflab.doctorname
+                    ?.toLowerCase()
+                    .includes(filter.toLowerCase())
               )}
               path="refdoctor"
             />

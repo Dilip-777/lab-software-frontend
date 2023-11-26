@@ -3,21 +3,15 @@ import axios from "axios";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import * as z from "zod";
 import { toFormikValidationSchema } from "zod-formik-adapter";
-import { FieldArray, Formik } from "formik";
-import FormInput from "../FormikComponents/FormInput";
-import { api, getDepartments, getProfile, getTest, getTests } from "../../Api";
-import NoteModal from "../NoteModal";
-import Autocomplete from "./autocomplete";
-import Test from "./TestandReferences";
-import ReferenceModal from "./ReferencesModal";
-import FormInput1 from "../FormikComponents/FormInputWithSelect";
-import HeadingInput from "../../util/FormInput";
+import { Formik } from "formik";
+import FormInput from "../../Components/FormikComponents/FormInput";
+import { api, getProfile, getTest, getTests } from "../../Api";
+import NoteModal from "../../Components/NoteModal";
+import ReferenceModal from "../../Components/Profile/ReferencesModal";
+import FormInput1 from "../../Components/FormikComponents/FormInputWithSelect";
 import { Combobox, Transition } from "@headlessui/react";
-import { Button } from "../../util/Buttons";
-import { string } from "mathjs";
-import Divider from "../../util/Divider";
-import { XMarkIcon } from "@heroicons/react/20/solid";
-import AddTest from "./AddTest";
+import { Button } from "../../ui/Buttons";
+import AddTest from "../../Components/Profile/AddTest";
 
 const FormSchema = z.object({
   name: z.string(),
@@ -177,7 +171,7 @@ function AddProfile() {
     if (id !== "add") {
       fetchProfile();
     }
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     if (test) {
@@ -271,8 +265,8 @@ function AddProfile() {
               };
 
               if (profile) {
-                const res = await axios
-                  .put(`http://localhost:5000/profile/update/${profile.id}`, {
+                await api
+                  .put(`/profile/update/${profile.id}`, {
                     profiledata,
                     tests: testIds,
                     headings: headings.map((h, index) => ({
@@ -285,16 +279,16 @@ function AddProfile() {
                     })),
                   })
                   .then((res) => {
-                    // if (res.status === 200) {
-                    //   navigate("/profile");
-                    // }
+                    if (res.status === 200) {
+                      navigate("/profile");
+                    }
                   })
                   .catch((err) => console.log(err));
                 return;
               }
 
-              const res = await axios
-                .post("http://localhost:5000/profile/add", {
+              await api
+                .post("/profile/add", {
                   profiledata,
                   tests: testIds.map((obj) => obj.id),
                   headings: headings.map((h, index) => ({
@@ -313,11 +307,9 @@ function AddProfile() {
             }}
           >
             {({ handleSubmit, isSubmitting, values, errors }) => {
-              console.log(errors, "errorss", values, "values");
-
               return (
                 <form onSubmit={handleSubmit} className="px-2">
-                  <div className="grid    md:grid-cols-3 sm:grid-cols-2 xs:grid-cols-1 lg:grid-cols-4 gap-x-9 gap-y-0 w-full">
+                  <div className="grid md:grid-cols-3 sm:grid-cols-2 xs:grid-cols-1 lg:grid-cols-4 gap-x-9 gap-y-0 w-full">
                     <FormInput
                       name="name"
                       label="Profile Name"
@@ -325,7 +317,6 @@ function AddProfile() {
                       className="min-w-[230px]"
                       classname="min-w-[230px]"
                     />
-                    {/* <FormInput name="profilecode" label="Role" placeholder="Role" /> */}
 
                     <FormInput
                       name="sampletype"
@@ -341,13 +332,6 @@ function AddProfile() {
                       className="min-w-[230px]"
                       classname="min-w-[230px]"
                     />
-                    {/* <FormInput
-                      name="samplesize"
-                      label="Sample Size"
-                      placeholder="Enter the Sample Size"
-                      className="min-w-[230px]"
-                      classname="min-w-[230px]"
-                    /> */}
                     <FormInput1
                       name="samplesize"
                       label="Sample Size"
@@ -370,13 +354,12 @@ function AddProfile() {
                       classname="min-w-[230px]"
                       type="number"
                     />
-                    <button
+                    <Button
                       type="button"
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 text-sm rounded h-10 my-auto mr-auto ml-4"
+                      label="Note"
                       onClick={() => setOpen(true)}
-                    >
-                      Note
-                    </button>
+                      className="h-10 my-auto mr-auto ml-4"
+                    />
                   </div>
                   <div className=" border-[1px] border-t border-gray-400 w-full my-3"></div>
                   {type === "formulas" ? (
@@ -488,29 +471,14 @@ function AddProfile() {
                         selected={testIds}
                         addHeading={true}
                       />
-
-                      {/* <div>
-                        {testIds?.map((test) => <Test handleOpen={handleClick} test={test} setTestIds={setTestIds} />)}
-                      </div> */}
                     </div>
                   )}
-                  <button
+                  <Button
                     type="submit"
-                    disabled={isSubmitting}
-                    className={` ${
-                      isSubmitting
-                        ? "bg-gray-200 hover:bg-gray-100 text-gray-500"
-                        : "bg-blue-500  hover:bg-blue-700  text-white"
-                    } font-bold py-2 px-3 text-sm rounded my-3 float-right`}
-                  >
-                    Submit
-                    {isSubmitting && (
-                      <div
-                        className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
-                        role="status"
-                      ></div>
-                    )}
-                  </button>
+                    label="Submit"
+                    loading={isSubmitting}
+                    className="float-right"
+                  />
                 </form>
               );
             }}

@@ -10,6 +10,35 @@ declare global {
     editor?: boolean;
   }
 
+  //   uploadletterhead   Boolean    @default(false)
+  // topbottommargin   Boolean   @default(false)
+  // testnewpage   Boolean   @default(false)
+  // signdepartmentwise   Boolean   @default(false)
+  // profilenewpage   Boolean   @default(false)
+  // testprofilesamepage   Boolean   @default(false)
+  // departmentwise   Boolean   @default(false)
+  // disableqrcode  Boolean   @default(false)
+  // pagenumber  Boolean   @default(false)
+  // showendline  Boolean   @default(false)
+  // endlineposition  String?
+  // endline    String?
+
+  interface PrintSetting {
+    id: number;
+    uploadletterhead: boolean;
+    topbottommargin: boolean;
+    testnewpage: boolean;
+    signdepartmentwise: boolean;
+    profilenewpage: boolean;
+    testprofilesamepage: boolean;
+    departmentwise: boolean;
+    disableqrcode: boolean;
+    pagenumber: boolean;
+    showendline: boolean;
+    endlineposition: string | null;
+    endline: string | null;
+  }
+
   interface User {
     id: number;
     username: string;
@@ -32,6 +61,7 @@ declare global {
     name: string;
     doctor: string;
     doctorSignature: string;
+    order: number;
     tests: Test[];
   }
 

@@ -5,6 +5,8 @@ import DropDown from "./DropDown";
 import { navItems } from "../store/navitems";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { api } from "../Api";
+import { cn } from "../utils";
 
 const navigation = [
   { name: "Dashboard", href: "#", current: true },
@@ -28,9 +30,7 @@ export default function Navbar({
 
   const fetchPrivileges = async () => {
     if (user?.roleId) {
-      const res = await axios.get(
-        `http://localhost:5000/role/getprivileges?roleid=${user.roleId}`
-      );
+      const res = await api.get(`/role/getprivileges?roleid=${user.roleId}`);
       const privileges = res.data.data || [];
       const privilegesArray = privileges.map((privilege: any) => {
         return privilege.name;
@@ -51,7 +51,7 @@ export default function Navbar({
   };
 
   return (
-    <Disclosure as="nav" className="bg-[#1e88e5]">
+    <Disclosure as="nav" className="bg-palatinateBlue">
       {({ open }) => (
         <>
           <div className="mx-auto max-w-8xl px-2 sm:px-6 lg:px-8">
@@ -83,16 +83,7 @@ export default function Navbar({
                       )
                       .map((item) =>
                         item.dropdown ? (
-                          <a
-                            key={item.name}
-                            // href={item.path}
-                            className={classNames(
-                              // false
-                              //   ? "bg-[#1565c0] text-white"
-                              //   : "text-gray-100 hover:bg-[#1565c0] hover:text-white",
-                              ""
-                            )}
-                          >
+                          <a key={item.name} href={item.path}>
                             {/* {item.name} */}
                             <DropDown privileges={privileges} navItem={item} />
                           </a>
@@ -100,12 +91,9 @@ export default function Navbar({
                           <a
                             key={item.name}
                             href={item.path}
-                            className={classNames(
-                              false
-                                ? "bg-[#1565c0] text-white"
-                                : "text-gray-100 hover:bg-[#1565c0] hover:text-white",
-                              " px-3  text-sm  font-700 cursor-pointer h-14 flex justify-center items-center"
-                            )}
+                            className={
+                              "text-gray-100 hover:bg-backgroundHover hover:text-white px-3  text-sm  font-700 cursor-pointer h-14 flex justify-center items-center"
+                            }
                           >
                             {item.name}
                           </a>

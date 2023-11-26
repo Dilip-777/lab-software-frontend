@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import SearchBar from "../../util/Searchbar";
+import SearchBar from "../../ui/Searchbar";
 import Table from "../TablePages/Table";
-import FormSelect from "../../util/FormSelect";
+import FormSelect from "../../ui/FormSelect";
 import {
   api,
   getDepartments,
@@ -11,8 +11,8 @@ import {
   getTests,
 } from "../../Api";
 import AddPriceList from "./AddPriceList";
-import { Button } from "../../util/Buttons";
-import Loader from "../../util/Loader";
+import { Button } from "../../ui/Buttons";
+import Loader from "../../ui/Loader";
 
 const createHeadCell = (
   id: string,
@@ -161,22 +161,13 @@ export default function PricelistTable({ type }: { type: string }) {
           </button> */}
         {changes.length > 0 ? (
           <div className="flex">
+            <Button label="Save" className="m-2" onClick={() => handleSave()} />
             <Button
-              label="Save"
+              label="Discard"
               className="m-2"
-              onClick={() => handleSave()}
-              loading={loading}
+              onClick={() => setDiscard(true)}
+              variant="outlined"
             />
-            <button
-              type="button"
-              onClick={() => {
-                setDiscard(true);
-                setChanges([]);
-              }}
-              className="bg-transparent hover:bg-blue-500 my-3 text-blue-700 font-semibold hover:text-white py-0 px-4 border border-blue-500 hover:border-transparent rounded items-center mx-3 h-[2.4rem]"
-            >
-              Cancel
-            </button>
           </div>
         ) : (
           <AddPriceList tests={tests} type={type} fetch={fetchPriceList} />

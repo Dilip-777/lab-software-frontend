@@ -1,5 +1,5 @@
 import { Listbox, Transition } from "@headlessui/react";
-import { CheckIcon, ChevronDownIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
+import { CheckIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
 import { Fragment, useState } from "react";
 
 interface Props {
@@ -13,13 +13,13 @@ interface Props {
 }
 
 const people = [
-  { name: 'Wade Cooper' },
-  { name: 'Arlene Mccoy' },
-  { name: 'Devon Webb' },
-  { name: 'Tom Cook' },
-  { name: 'Tanya Fox' },
-  { name: 'Hellen Schmidt' },
-]
+  { name: "Wade Cooper" },
+  { name: "Arlene Mccoy" },
+  { name: "Devon Webb" },
+  { name: "Tom Cook" },
+  { name: "Tanya Fox" },
+  { name: "Hellen Schmidt" },
+];
 
 export default function FormSelect({
   value,
@@ -30,13 +30,16 @@ export default function FormSelect({
   divClassName,
   inputClassName,
 }: Props) {
-   const [selected, setSelected] = useState(people[0])
   return (
     <div className={`flex flex-col mx-10 ${divClassName}`}>
-      <Listbox value={value} onChange={setValue} >
+      <Listbox value={value} onChange={setValue}>
         <div className="relative">
-          <Listbox.Button  className={`text-gray-600 p-2  border-2 border-gray-400 focus-within:border-gray-500 bg-white rounded-md  text-sm focus-within:shadow-lg h-12 w-[250px] ${inputClassName}`}>
-            <span className="text-left truncate block">{options.find(o => o.value === value)?.label || placeholder}</span>
+          <Listbox.Button
+            className={`text-gray-600 p-2  border-2 border-gray-400 focus-within:border-palatinateBlue bg-white rounded-md  text-sm focus-within:shadow-lg h-12 w-[250px] ${inputClassName}`}
+          >
+            <span className="text-left truncate block">
+              {options.find((o) => o.value === value)?.label || placeholder}
+            </span>
             {/* {selected.name} */}
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
               <ChevronDownIcon
@@ -57,7 +60,7 @@ export default function FormSelect({
                   key={option.value}
                   className={({ active }) =>
                     `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                      active ? 'bg-gray-200' : 'text-gray-900'
+                      active ? "bg-gray-200" : "text-gray-900"
                     }`
                   }
                   value={option.value}
@@ -66,7 +69,7 @@ export default function FormSelect({
                     <>
                       <span
                         className={`block  ${
-                          selected ? 'font-medium' : 'font-normal'
+                          selected ? "font-medium" : "font-normal"
                         }`}
                       >
                         {option.label}
@@ -80,7 +83,6 @@ export default function FormSelect({
                   )}
                 </Listbox.Option>
               ))}
-             
             </Listbox.Options>
           </Transition>
         </div>

@@ -1,10 +1,10 @@
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
-import FormInput from '../FormikComponents/FormInput';
-import FormSelect from '../FormikComponents/FormSelect';
-import { FieldArray, Formik } from 'formik';
-import Loader from '../../util/Loader';
-import TextArea from '../FormikComponents/TextArea';
+import { Dialog, Transition } from "@headlessui/react";
+import { Fragment } from "react";
+import FormInput from "../FormikComponents/FormInput";
+import FormSelect from "../FormikComponents/FormSelect";
+import { FieldArray, Formik } from "formik";
+import Loader from "../../ui/Loader";
+import TextArea from "../FormikComponents/TextArea";
 
 export default function ReferenceModal({
   open,
@@ -46,7 +46,10 @@ export default function ReferenceModal({
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel className="w-[90%] sm:w-[80%] md:w-[80%] lg:w-[80%] transform  overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all h-[40rem]">
-                <div className="absolute top-3 right-3 cursor-pointer" onClick={handleClose}>
+                <div
+                  className="absolute top-3 right-3 cursor-pointer"
+                  onClick={handleClose}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -55,10 +58,17 @@ export default function ReferenceModal({
                     stroke="currentColor"
                     className="w-6 h-6"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </div>
-                <Dialog.Title as="h3" className="text-lg font-semibold leading-6 text-gray-900 mb-3">
+                <Dialog.Title
+                  as="h3"
+                  className="text-lg font-semibold leading-6 text-gray-900 mb-3"
+                >
                   {test?.name}
                 </Dialog.Title>
                 <div className="">
@@ -70,7 +80,9 @@ export default function ReferenceModal({
                       render={(arrayHelpers) => (
                         <div className="">
                           <div className="flex justify-between">
-                            <p className="mb-3 text-md font-semibold ">Reference Values:</p>
+                            <p className="mb-3 text-md font-semibold ">
+                              Reference Values:
+                            </p>
                           </div>
                           <div className="overflow-auto h-[30rem]">
                             {references.map((refrence: any, index: number) => (
@@ -85,16 +97,16 @@ export default function ReferenceModal({
                                     placeholder="Select the Gender"
                                     options={[
                                       {
-                                        value: 'Male',
-                                        label: 'Male',
+                                        value: "Male",
+                                        label: "Male",
                                       },
                                       {
-                                        value: 'Female',
-                                        label: 'Female',
+                                        value: "Female",
+                                        label: "Female",
                                       },
                                       {
-                                        value: 'Both',
-                                        label: 'Both',
+                                        value: "Both",
+                                        label: "Both",
                                       },
                                     ]}
                                     name={`references[${index}].gender`}
@@ -140,7 +152,7 @@ export default function ReferenceModal({
                                     type="text"
                                     classname="my-1 min-w-[2rem]"
                                     className="min-w-[2rem]"
-                                  />{' '}
+                                  />{" "}
                                   <TextArea
                                     label="Reference Note"
                                     placeholder="Reference Note"
@@ -148,7 +160,7 @@ export default function ReferenceModal({
                                     type="text"
                                     className="h-10 min-w-[12rem]"
                                     classname="my-1 min-w-[10m]"
-                                  />{' '}
+                                  />{" "}
                                   <button
                                     type="button"
                                     className="bg-red-500 hover:bg-red-700 text-white font-bold  p-1 rounded-full my-auto float-right  ml-auto w-fit self-end text-sm "
@@ -162,7 +174,11 @@ export default function ReferenceModal({
                                       stroke="currentColor"
                                       className="w-5 h-5"
                                     >
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M6 18L18 6M6 6l12 12"
+                                      />
                                     </svg>
                                   </button>
                                 </div>
@@ -172,12 +188,12 @@ export default function ReferenceModal({
                             <button
                               onClick={() =>
                                 arrayHelpers.push({
-                                  gender: '',
+                                  gender: "",
                                   minAge: 0,
                                   maxAge: 0,
                                   lowerValue: 0,
                                   upperValue: 0,
-                                  unit: '',
+                                  unit: "",
                                 })
                               }
                               type="button"

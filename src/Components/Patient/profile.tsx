@@ -1,10 +1,10 @@
 import { Fragment, useEffect, useState } from "react";
-import Divider from "../../util/Divider";
+import Divider from "../../ui/Divider";
 import { api } from "../../Api";
 import { useParams } from "react-router-dom";
-import Loader from "../../util/Loader";
+import Loader from "../../ui/Loader";
 import ResultModal from "./resultModal";
-import { Button } from "../../util/Buttons";
+import { Button } from "../../ui/Buttons";
 import { Menu, Transition } from "@headlessui/react";
 import CollectionModal from "./collectionModal";
 import moment from "moment";
@@ -538,7 +538,6 @@ export default function PatientProfile() {
           setSelectedOrder(undefined);
           setIsOpen2(false);
         }}
-        pdfUrl={pdfUrl as string}
         order={selectedOrder as Order}
         patient={patient}
       />

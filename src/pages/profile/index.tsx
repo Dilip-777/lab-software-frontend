@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import SearchBar from "../../util/Searchbar";
-import Table from "../TablePages/Table";
-import FormSelect from "../../util/FormSelect";
-import { getDepartments, getProfiles, getTests } from "../../Api";
+import SearchBar from "../../ui/Searchbar";
+import Table from "../../Components/TablePages/Table";
+import FormSelect from "../../ui/FormSelect";
+import { getDepartments, getProfiles } from "../../Api";
+import { Button } from "../../ui/Buttons";
 
 const createHeadCell = (
   id: string,
@@ -29,16 +30,13 @@ const headcells: headcell[] = [
 
 export default function Profiles() {
   const [profiles, setProfiles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState("");
   const [department, setDepartment] = useState("");
   const [departments, setDepartments] = useState<any[]>([]);
   const navigate = useNavigate();
 
   const handleDelete = async (id: number) => {
-    const res = await axios.delete(
-      `http://localhost:5000/profile/delete/${id}`
-    );
+    await axios.delete(`http://localhost:5000/profile/delete/${id}`);
     fetchProfiles();
   };
 
@@ -59,18 +57,18 @@ export default function Profiles() {
 
   const options = [
     {
-    label: "Edit",
-    onClick: (id?: number) => navigate(`/profile/${id}`),
-  },
-  {
-    label: "Delete",
-    onClick: (id?: number) => handleDelete(id as  number),
-  },
-  {
-    label: "Add Formula",
-    onClick: (id?: number) => navigate(`/profile/${id}?type=formulas`)
-  }
-  ]
+      label: "Edit",
+      onClick: (id?: number) => navigate(`/profile/${id}`),
+    },
+    {
+      label: "Delete",
+      onClick: (id?: number) => handleDelete(id as number),
+    },
+    {
+      label: "Add Formula",
+      onClick: (id?: number) => navigate(`/profile/${id}?type=formulas`),
+    },
+  ];
 
   return (
     <div className="flex flex-col">
@@ -95,12 +93,10 @@ export default function Profiles() {
               }))}
             />
           </div>
-          <button
+          <Button
+            label="Add Profile"
             onClick={() => navigate("/profile/add")}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 text-sm rounded"
-          >
-            Add Profile
-          </button>
+          />
         </div>
         <div className="overflow-x-auto">
           <div className="p-1.5 w-full inline-block align-middle">

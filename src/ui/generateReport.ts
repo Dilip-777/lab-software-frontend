@@ -9,6 +9,7 @@ interface Props {
   selected?: any[];
   departments: Department[];
   letterhead: boolean;
+  printSetting: PrintSetting | undefined;
 }
 
 const getnote = (note: string) => {
@@ -41,8 +42,10 @@ export const generateReport = async ({
   selected,
   departments,
   letterhead,
+  printSetting,
 }: Props) => {
   const signs = `
+        <div>
         <div style="font-size: 12px; display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; position: relative;   max-width: 100%;  font-family: 'Poppins', sans-serif; margin: 0;page-break-after: always;">
          ${departments
            .map(
@@ -54,7 +57,14 @@ export const generateReport = async ({
          `
            )
            .join("")}
-    </div>`;
+           ${
+             printSetting?.showendline &&
+             printSetting.endlineposition === "false"
+               ? `<p style='text-align: center; margin-top: 1rem; font-size: 12px; font-weight: bold; grid-column: 1'>${printSetting.endline}</p>`
+               : ""
+           }
+    </div>
+        </div>`;
 
   const testTable = (test: OrderTest) => {
     console.log(test.test.note);
@@ -136,7 +146,7 @@ export const generateReport = async ({
   const tableHead = `
             <thead>
                 <tr>
-                    <th style="padding-left:0px; text-align: left;padding-top: 1rem;">Investigation</th>
+                    <th style=" text-align: left; padding-left: 0;">Investigation</th>
                     <th style=" text-align: center;">Obtained Value</th>
                     <th style=" text-align: left;"></th>
                     <th style=" text-align: left;">Units</th>
@@ -180,7 +190,7 @@ export const generateReport = async ({
             </tbody>
             </table>     
         </div>
-        <div style="border-top: 1px solid black; width: 100%;margin-top: 0.5rem;"></div>
+       
     </div>
     ${
       profiles.filter(
@@ -207,10 +217,22 @@ export const generateReport = async ({
         selected &&
         selected.find((s) => s.type === "profile" && s.name === p.name)
     )
-    .forEach((profile) => {
+    .forEach((profile, index) => {
       combinedHtml += `
             <div
-    style="font-size: 12px; position: relative;page-break-after: always; padding: 9px; pb-10; background-size: contain; max-width: 100%; background-repeat: no-repeat; padding-bottom: 0rem; font-family: 'Poppins', sans-serif; margin: 0;">
+    style="font-size: 12px; position: relative;${
+      printSetting?.profilenewpage ||
+      (!printSetting?.testprofilesamepage &&
+        index ===
+          profiles.filter(
+            (p) =>
+              selected &&
+              selected.find((s) => s.type === "profile" && s.name === p.name)
+          ).length -
+            1)
+        ? "page-break-after: always;"
+        : ""
+    } padding: 9px; pb-10; background-size: contain; max-width: 100%; background-repeat: no-repeat; padding-bottom: 0rem; font-family: 'Poppins', sans-serif; margin: 0;">
     <div style=" ">
        
        
@@ -249,22 +271,34 @@ export const generateReport = async ({
     .forEach((test, index) => {
       combinedHtml += `
             <div
-    style="font-size: 12px; position: relative; padding: 9px; pb-10;  max-width: 100%; padding-bottom: 0rem; font-family: 'Poppins', sans-serif; margin: 0;page-break-after: always;">
+    style="font-size: 12px; position: relative; padding: 9px;  max-width: 100%;  font-family: 'Poppins', sans-serif; ${
+      printSetting?.testnewpage ? "page-break-after: always;" : ""
+    }">
     <div
     <div >
-        <p style="margin-top: 9px; margin-bottom: 9px; font-size: 15px;font-weight: bolder;">${
-          test.name
-        }</p>
+      
 
          <table style="width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 13px;">
            ${tableHead}    
                 <tbody style="font-size: 13px;">
+               <tr>
+            <td style="padding-left:0px; text-align: left; font-size: 13px; font-weight: bold;">${
+              test.test.name
+            }</td>
+            </tr>
               ${testTable(test)}
             </tbody>
                
             </table>     
         </div>
-        <div style="border-top: 1px solid black; width: 100%;margin-top: 0.5rem;"></div>
+        
+       
+          ${
+            printSetting?.showendline && printSetting.endlineposition === "true"
+              ? `<p style='text-align: center; margin-top: 1rem; font-size: 12px; font-weight: bold;'>${printSetting.endline}</p>`
+              : ""
+          }
+
         ${
           index ===
           tests
