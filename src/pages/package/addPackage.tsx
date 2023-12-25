@@ -4,7 +4,14 @@ import * as z from "zod";
 import { toFormikValidationSchema } from "zod-formik-adapter";
 import { Formik } from "formik";
 import FormInput from "../../Components/FormikComponents/FormInput";
-import { api, getPackage, getProfiles, getTest, getTests } from "../../Api";
+import {
+  api,
+  getDepartments,
+  getPackage,
+  getProfiles,
+  getTest,
+  getTests,
+} from "../../Api";
 import NoteModal from "../../Components/NoteModal";
 import Autocomplete from "../../Components/Profile/autocomplete";
 import Test from "../../Components/Profile/TestandReferences";
@@ -12,11 +19,13 @@ import ReferenceModal from "../../Components/Profile/ReferencesModal";
 import Divider from "../../ui/Divider";
 import FormInput1 from "../../Components/FormikComponents/FormInputWithSelect";
 import { Button } from "../../ui/Buttons";
+import FormSelect from "../../Components/FormikComponents/FormSelect";
 
 const FormSchema = z.object({
   name: z.string().min(3, "Name must contain atleast 3 characters").max(50),
   sampletype: z.string(),
   container: z.string(),
+  departmentId: z.string(),
   samplesize: z.string(),
   sampleunit: z.string(),
   reportwithin: z.string(),
@@ -30,6 +39,7 @@ function AddPackage() {
   const [tests, setTests] = useState<any[]>([]);
   const [references, setReferences] = useState<any[]>([]);
   const [test, setTest] = useState<any>();
+  const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [testIds, setTestIds] = useState<Test[]>([]);
   const [profileIds, setProfileIds] = useState<Profile[]>([]);
@@ -61,6 +71,11 @@ function AddPackage() {
     });
     setProfileIds([...profileIds, res.data.data]);
     fetchProfiles();
+  };
+
+  const fetchDepartments = async () => {
+    const data = await getDepartments();
+    setDepartments(data || []);
   };
 
   const fetchTests = async () => {
@@ -103,6 +118,7 @@ function AddPackage() {
   useEffect(() => {
     fetchTests();
     fetchProfiles();
+    fetchDepartments();
     if (id !== "add") {
       fetchPackage();
     }
@@ -121,6 +137,7 @@ function AddPackage() {
   const initialValues = {
     name: packs?.name || "",
     sampletype: packs?.sampletype || "",
+    departmentId: packs?.departmentId?.toString() || "",
     container: packs?.container || "",
     samplesize: packs?.samplesize || "",
     sampleunit: packs?.sampleunit || "ml",
@@ -166,14 +183,15 @@ function AddPackage() {
               const packagedata = {
                 ...rest,
                 note: text,
+                departmentId: parseInt(values.departmentId),
               };
 
               if (packs) {
                 await api
                   .put(`/package/update/${packs.id}`, {
                     packagedata,
-                    tests: testIds,
-                    profiles: profileIds,
+                    tests: testIds.map((t) => t.id),
+                    profiles: profileIds.map((p) => p.id),
                   })
                   .then((res) => {
                     if (res.status === 200) {
@@ -209,6 +227,16 @@ function AddPackage() {
                       placeholder="Enter Package Name"
                     />
                     {/* <FormInput name="profilecode" label="Role" placeholder="Role" /> */}
+
+                    <FormSelect
+                      label="Department"
+                      placeholder="Select the Department"
+                      options={departments.map((d) => ({
+                        value: d.id.toString(),
+                        label: d.name,
+                      }))}
+                      name="departmentId"
+                    />
 
                     <FormInput
                       name="sampletype"

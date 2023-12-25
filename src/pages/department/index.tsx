@@ -10,6 +10,7 @@ const headcells: headcell[] = [
   { id: "id", label: "Department Id", align: "left" },
   { id: "name", label: "Department Name", align: "left" },
   { id: "doctor", label: "Department Doctor", align: "left" },
+  { id: "specialisation", label: "Specialisation", align: "left" },
   { id: "doctorSignature", label: "Doctor Signature", align: "left" },
 ];
 

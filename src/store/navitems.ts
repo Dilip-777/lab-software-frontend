@@ -38,7 +38,7 @@ export const navItems = [
         path: "/refdoctor",
       },
       {
-        name: "Ref Doctor",
+        name: "Settings",
         path: "/setting",
       },
     ],

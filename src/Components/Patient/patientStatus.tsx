@@ -6,9 +6,8 @@ import Loader from "../../ui/Loader";
 import { useNavigate } from "react-router-dom";
 import ResultModal from "./resultModal";
 import { Menu, Transition } from "@headlessui/react";
-import { generateReport } from "../../ui/generateReport";
+import { generateReport } from "../../utils/generateReport";
 import PreviewModal from "./previewModal";
-import { log } from "console";
 import moment from "moment";
 import CollectionModal from "./collectionModal";
 import DeleteModal from "../../ui/DeleteModal";
@@ -572,7 +571,6 @@ export default function PatientStatus() {
                               className="px-2 py-4 text-xs font-semibold text-gray-800 max-w-[10rem] leading-5"
                               align="center"
                             >
-                              {getTestNames(order)} {getTestNames(order)}{" "}
                               {getTestNames(order)}
                             </td>
                             <td className="px-0 py-4 text-xs font-semibold text-gray-800 ">

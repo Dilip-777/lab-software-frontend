@@ -1,10 +1,8 @@
 import { useField, useFormikContext } from "formik";
-import { useState } from "react";
 import { api } from "../../Api";
-import { log } from "console";
 
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
-  name: string;
+  name?: string;
   label?: string;
   placeholder: string;
   classname?: string;
@@ -19,10 +17,8 @@ export default function FormUpload({
   className,
   ...rest
 }: Props) {
-  const [field, meta] = useField(name);
+  const [field, meta] = useField(name || "");
   const { setFieldValue } = useFormikContext();
-  const isError = Boolean(meta.touched && meta.error);
-  const [file, setFile] = useState<File | null>(null);
 
   const handleChange = async (file: File) => {
     console.log(file);
@@ -37,18 +33,18 @@ export default function FormUpload({
 
     const res = await api.post("/upload", formData, config);
     const data = res.data?.data;
-    if (data) setFieldValue(name, data[0]?.filename);
+    if (data) setFieldValue(name || "", data[0]?.filename);
   };
 
   return (
-    <div className={`flex flex-col mx-4 my-4 max-h-10 ${classname} `}>
+    <div className={`flex flex-col mx-4 my-4  ${classname} `}>
       {label && (
         <label className="text-sm font-bold text-gray-700">{label}</label>
       )}
       <div className="flex items-center">
         <label
           htmlFor="file-upload"
-          className="flex items-center cursor-pointer border-2 rounded w border-gray-400 focus:border-blue-600 h-10 px-3 text-sm font-semibold my-2 min-w-[270px]"
+          className={`flex items-center cursor-pointer border-2 rounded w border-gray-400 focus:border-blue-600 h-10 px-3 text-sm font-semibold my-2 min-w-[270px] ${className}`}
         >
           <span className="mr-2">
             <svg
@@ -77,15 +73,10 @@ export default function FormUpload({
               handleChange(e.target.files[0]);
             }
           }}
+          {...rest}
         />
-        {/* <button
-        className="ml-4 bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
-        onClick={handleUpload}
-        >
-        Upload
-      </button> */}
       </div>
-      <div className="h-20">
+      <div className=" text-sm">
         <p>{field.value}</p>
       </div>
     </div>

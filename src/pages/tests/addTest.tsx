@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import * as z from "zod";
 import { toFormikValidationSchema } from "zod-formik-adapter";
@@ -26,11 +25,11 @@ const FormSchema = z.object({
   name: z.string(),
   testcode: z.string(),
   departmentId: z.string(),
-  sampletype: z.string(),
-  sampleunit: z.string(),
-  container: z.string(),
-  samplesize: z.string(),
-  reportwithin: z.string(),
+  sampletype: z.string().optional(),
+  sampleunit: z.string().optional(),
+  container: z.string().optional(),
+  samplesize: z.string().optional(),
+  reportwithin: z.string().optional(),
   reportwithinType: z.string(),
   testmethodtype: z.string(),
   regularprice: z.number(),

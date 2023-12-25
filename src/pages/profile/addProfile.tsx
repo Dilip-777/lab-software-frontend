@@ -5,13 +5,14 @@ import * as z from "zod";
 import { toFormikValidationSchema } from "zod-formik-adapter";
 import { Formik } from "formik";
 import FormInput from "../../Components/FormikComponents/FormInput";
-import { api, getProfile, getTest, getTests } from "../../Api";
+import { api, getDepartments, getProfile, getTest, getTests } from "../../Api";
 import NoteModal from "../../Components/NoteModal";
 import ReferenceModal from "../../Components/Profile/ReferencesModal";
 import FormInput1 from "../../Components/FormikComponents/FormInputWithSelect";
 import { Combobox, Transition } from "@headlessui/react";
 import { Button } from "../../ui/Buttons";
 import AddTest from "../../Components/Profile/AddTest";
+import FormSelect from "../../Components/FormikComponents/FormSelect";
 
 const FormSchema = z.object({
   name: z.string(),
@@ -22,6 +23,7 @@ const FormSchema = z.object({
   reportwithin: z.string(),
   reportwithinType: z.string(),
   regularprice: z.number(),
+  departmentId: z.string(),
 });
 
 function AddProfile() {
@@ -30,6 +32,7 @@ function AddProfile() {
   const [tests, setTests] = useState<any[]>([]);
   const [references, setReferences] = useState<any[]>([]);
   const [test, setTest] = useState<any>();
+  const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [testIds, setTestIds] = useState<any[]>([]);
   const [headings, setHeadings] = useState<
@@ -54,7 +57,10 @@ function AddProfile() {
     }
   };
 
-  console.log(headings, "headings");
+  const fetchDepartments = async () => {
+    const data = await getDepartments();
+    setDepartments(data || []);
+  };
 
   const handleHeadings = (
     oldheading: string,
@@ -62,8 +68,6 @@ function AddProfile() {
     test?: Test,
     oldtest?: Test
   ) => {
-    console.log(oldheading, newHeading, test, oldtest, "outside");
-
     setHeadings((prevHeadings) => {
       const i = prevHeadings.findIndex((h) => h.heading === oldheading);
 
@@ -71,7 +75,7 @@ function AddProfile() {
         if (newHeading) {
           return [...prevHeadings, { heading: newHeading, tests: [] }];
         }
-        return prevHeadings; // No change if newHeading is not provided.
+        return prevHeadings;
       } else {
         if (newHeading === "") {
           console.log(
@@ -114,8 +118,6 @@ function AddProfile() {
       }
     });
   };
-
-  console.log(formulas, "formulas");
 
   const createTest = async (name: string, heading?: string) => {
     const res = await api.post("/test/add", {
@@ -168,6 +170,7 @@ function AddProfile() {
 
   useEffect(() => {
     fetchTests();
+    fetchDepartments();
     if (id !== "add") {
       fetchProfile();
     }
@@ -187,6 +190,7 @@ function AddProfile() {
     name: profile?.name || "",
     sampletype: profile?.sampletype || "",
     container: profile?.container || "",
+    departmentId: profile?.departmentId?.toString() || "",
     samplesize: profile?.samplesize || "",
     sampleunit: profile?.sampleunit || "ml",
     reportwithin: profile?.reportwithin || "",
@@ -254,14 +258,13 @@ function AddProfile() {
               const { ...rest } = values;
 
               const testcode = testIds.map((obj) => obj.testcode).join(", ");
-
               const testnames = testIds.map((obj) => obj.name).join(", ");
-
               const profiledata = {
                 ...rest,
                 testcode,
                 testnames,
                 note: text,
+                departmentId: parseInt(values.departmentId),
               };
 
               if (profile) {
@@ -317,7 +320,15 @@ function AddProfile() {
                       className="min-w-[230px]"
                       classname="min-w-[230px]"
                     />
-
+                    <FormSelect
+                      label="Department"
+                      placeholder="Select the Department"
+                      options={departments.map((d) => ({
+                        value: d.id.toString(),
+                        label: d.name,
+                      }))}
+                      name="departmentId"
+                    />
                     <FormInput
                       name="sampletype"
                       label="Sample Type"

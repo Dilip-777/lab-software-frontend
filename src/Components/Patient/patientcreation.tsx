@@ -1,27 +1,18 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import * as z from "zod";
 import { toFormikValidationSchema } from "zod-formik-adapter";
-import { Formik, FormikConsumer } from "formik";
+import { Formik } from "formik";
 import FormInput from "../FormikComponents/FormInput";
 import FormSelect from "../FormikComponents/FormSelect";
-import {
-  api,
-  getPriceLists,
-  getRefDoctors,
-  getRefLab,
-  getRefLabs,
-  getTests,
-} from "../../Api";
+import { api, getPriceLists, getRefDoctors, getRefLabs } from "../../Api";
 import Autocomplete from "../Profile/autocomplete";
 import Autocomplete1 from "../../ui/Autocomplete";
 import Table from "./testTable";
 import FormInput1 from "../FormikComponents/FormInputWithSelect";
 import TextArea from "../FormikComponents/TextArea";
-import { Button } from "../../ui/Buttons";
 import PatientAutocomplete from "../../ui/Patientnameautocomplete";
-import { generatepdf } from "../../ui/generatepdf";
+import { generatepdf } from "../../utils/generatepdf";
 
 const HeadCells: headcell[] = [
   { id: "name", label: "Name" },

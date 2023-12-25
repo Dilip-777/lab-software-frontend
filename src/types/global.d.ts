@@ -26,17 +26,34 @@ declare global {
   interface PrintSetting {
     id: number;
     uploadletterhead: boolean;
-    topbottommargin: boolean;
+    letterhead: string | null;
+    departmentwisesigns: boolean;
     testnewpage: boolean;
+    profilefirst: boolean;
     signdepartmentwise: boolean;
     profilenewpage: boolean;
     testprofilesamepage: boolean;
     departmentwise: boolean;
+    commonsigns: boolean;
     disableqrcode: boolean;
     pagenumber: boolean;
     showendline: boolean;
     endlineposition: string | null;
     endline: string | null;
+    topmargin: number;
+    bottommargin: number;
+    leftmargin: number;
+    rightmargin: number;
+    signs?: Signs[];
+  }
+
+  interface Signs {
+    id: number;
+    specialisation: string | null;
+    doctorname: string;
+    signature: string | null;
+    settingsId: number;
+    settings: PrintSetting;
   }
 
   interface User {
@@ -95,6 +112,7 @@ declare global {
     name: string;
     testcode: string | null;
     testnames: string | null;
+    departmentId: number | null;
     sampletype: string | null;
     sampleunit: string | null;
     container: string | null;
@@ -103,6 +121,7 @@ declare global {
     reportwithinType: string | null;
     regularprice: number;
     note: string | null;
+    department: Department | null;
     pricelist: PriceList[];
     package: Package[];
     test: Test[];
@@ -137,6 +156,7 @@ declare global {
     id: number;
     name: string;
     sampletype: string | null;
+    departmentId: number | null;
     container: string | null;
     samplesize: string | null;
     sampleunit: string | null;
@@ -145,8 +165,10 @@ declare global {
     regularprice: number;
     note: string | null;
     pricelist: PriceList[];
+    department: Department | null;
     profile: Profile[];
     test: Test[];
+    orderpackage: OrderPackage[];
   }
 
   interface PriceList {
@@ -276,6 +298,8 @@ declare global {
     order: Order | null;
     profiles: OrderProfile[];
     tests: OrderTest[];
+    packageId: number | null;
+    package: Package | null;
   }
 
   interface OrderTest {

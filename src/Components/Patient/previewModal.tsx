@@ -1,7 +1,7 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
 import { api, getDepartments } from "../../Api";
-import { generateReport } from "../../ui/generateReport";
+import { generateReport } from "../../utils/generateReport";
 import Loader from "../../ui/Loader";
 import { Button } from "../../ui/Buttons";
 
@@ -27,12 +27,24 @@ export default function PreviewModal({
   const [loading, setLoading] = useState<boolean>(true);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [selectedTests, setSelectedTests] = useState<selected[]>([]);
+  const [departmentwise, setDepartmentwise] = useState<
+    {
+      packages: OrderPackage[];
+      profiles: OrderProfile[];
+      tests: OrderTest[];
+      name: string;
+    }[]
+  >([]);
   const [selectedDepartments, setSelectedDepartments] = useState<number[]>([]);
-  const [printSetting, setPrintSetting] = useState<PrintSetting | undefined>(
-    undefined
-  );
+  const [data, setData] = useState<any>({});
+  const [printSetting, setPrintSetting] = useState<
+    | (PrintSetting & {
+        signs: Signs[];
+      })
+    | null
+  >(null);
   const [letterhead, setLetterhead] = useState<boolean>(
-    printSetting?.uploadletterhead || false
+    !printSetting?.uploadletterhead || false
   );
 
   const fetchPrintSetting = async () => {
@@ -54,6 +66,7 @@ export default function PreviewModal({
       ),
       letterhead,
       printSetting,
+      departmentwise,
     });
     setPdfUrl(url as string);
     console.log(url, "url");
@@ -63,19 +76,91 @@ export default function PreviewModal({
 
   const fetchDepartments = async () => {
     const data = await getDepartments();
+    const de: Department[] = [];
+    let data1: {
+      packages: OrderPackage[];
+      profiles: OrderProfile[];
+      tests: OrderTest[];
+      name: string;
+    }[] = [];
+    if (printSetting?.departmentwise) {
+      data.forEach((d: Department) => {
+        const packs = order.packages.filter(
+          (p) =>
+            p?.package?.departmentId === d.id &&
+            selectedTests.find((s) => s.type === "package" && s.name === p.name)
+        );
+        const profiles = order.profiles.filter(
+          (p) =>
+            p?.profile?.departmentId === d.id &&
+            selectedTests.find((s) => s.type === "profile" && s.name === p.name)
+        );
+        const tests = order.tests.filter(
+          (p) =>
+            p.test.departmentId === d.id &&
+            selectedTests.find((s) => s.type === "test" && s.name === p.name)
+        );
+        if ([...packs, ...profiles, ...tests].length > 0) {
+          data1.push({ packages: packs, profiles, tests, name: d.name });
+          de.push(d);
+        }
+      });
+      const packs = order.packages.filter(
+        (p) =>
+          !p?.package?.departmentId &&
+          selectedTests.find((s) => s.type === "package" && s.name === p.name)
+      );
+      const profiles = order.profiles.filter(
+        (p) =>
+          !p?.profile?.departmentId &&
+          selectedTests.find((s) => s.type === "profile" && s.name === p.name)
+      );
+      const tests = order.tests.filter(
+        (p) =>
+          !p.test.departmentId &&
+          selectedTests.find((s) => s.type === "test" && s.name === p.name)
+      );
+      if ([...packs, ...profiles, ...tests].length > 0)
+        data1.push({
+          packages: packs,
+          profiles: profiles.filter((p) =>
+            selectedTests.find((s) => s.type === "profile" && s.name === p.name)
+          ),
+          tests: tests.filter((p) =>
+            selectedTests.find((s) => s.type === "test" && s.name === p.name)
+          ),
+          name: "",
+        });
+    } else {
+      data1.push({
+        packages: order.packages.filter((p) =>
+          selectedTests.find((s) => s.type === "test" && s.name === p.name)
+        ),
+        profiles: order.profiles,
+        tests: order.tests,
+        name: "",
+      });
+    }
+
+    setSelectedDepartments(de.map((d) => d.id));
+    setDepartmentwise(data1);
     setDepartments(data);
   };
 
   useEffect(() => {
     handleclickall();
-    fetchPDF();
-    fetchDepartments();
+    // fetchPDF();
+    // fetchDepartments();
     fetchPrintSetting();
   }, [order, patient]);
 
   useEffect(() => {
     fetchDepartments();
-  }, [pdfUrl]);
+  }, [selectedTests]);
+
+  useEffect(() => {
+    fetchPDF();
+  }, [departmentwise]);
 
   const getValidity = (pkg: OrderPackage) => {
     pkg.tests.forEach((test) => {
@@ -86,13 +171,22 @@ export default function PreviewModal({
         if (!test.observedValue) return false;
       });
     });
+
     return true;
   };
 
   const getValidity2 = (pkg: OrderProfile) => {
+    console.log(pkg.tests, "pkg.tests", pkg);
     pkg.tests.forEach((test) => {
       if (!test.observedValue) return false;
     });
+
+    pkg.headings.forEach((heading) => {
+      heading.tests.forEach((test) => {
+        if (!test.observedValue) return false;
+      });
+    });
+
     return true;
   };
 
@@ -108,7 +202,6 @@ export default function PreviewModal({
   };
 
   const handleclickall = (e?: any) => {
-    console.log(e?.target?.checked, "checked");
     if (e && !e.target.checked) {
       setSelectedTests([]);
       return;
@@ -122,16 +215,27 @@ export default function PreviewModal({
       pkg.profiles.forEach((profile) => {
         if (profile.tests.find((test) => test.observedValue))
           selected.push({ type: "package", name: profile.name });
+        profile.headings.forEach((heading) => {
+          heading.tests.forEach((test) => {
+            if (test.observedValue)
+              selected.push({ type: "package", name: test.name });
+          });
+        });
       });
     });
     order?.profiles.forEach((profile) => {
       if (profile.tests.find((test) => test.observedValue))
         selected.push({ type: "profile", name: profile.name });
+      profile.headings.forEach((heading) => {
+        heading.tests.forEach((test) => {
+          if (test.observedValue)
+            selected.push({ type: "profile", name: profile.name });
+        });
+      });
     });
     order?.tests.forEach((test) => {
       if (test.observedValue) selected.push({ type: "test", name: test.name });
     });
-    console.log(selected, "selected");
     setSelectedTests(selected);
     fetchPDF(selected);
   };
@@ -262,6 +366,7 @@ export default function PreviewModal({
                               </label>
                             </li>
                           ))}
+
                           {order?.profiles.map((profile) => (
                             <li
                               className="flex gap-2 items-center"
@@ -296,6 +401,7 @@ export default function PreviewModal({
                               </label>
                             </li>
                           ))}
+
                           {order?.tests.map((test) => (
                             <li
                               className="flex gap-2 items-center"

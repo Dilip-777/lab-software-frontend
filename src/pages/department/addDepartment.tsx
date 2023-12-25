@@ -12,9 +12,8 @@ import { Button } from "../../ui/Buttons";
 const FormSchema = z.object({
   name: z.string().min(3, "Name must contain atleast 3 characters").max(50),
   doctor: z.string(),
-  doctorSignature: z
-    .string()
-    .min(6, "Password must be at least 6 characters long"),
+  doctorSignature: z.string(),
+  specialisation: z.string(),
 });
 
 function AddDepartment() {
@@ -38,6 +37,7 @@ function AddDepartment() {
     name: department?.name || "",
     doctor: department?.doctor || "",
     doctorSignature: department?.doctorSignature || "",
+    specialisation: department?.specialisation || "",
   };
 
   return (
@@ -75,6 +75,7 @@ function AddDepartment() {
                 name: values.name,
                 doctor: values.doctor,
                 doctorSignature: values.doctorSignature,
+                specialisation: values.specialisation,
               };
 
               if (department) {
@@ -115,6 +116,11 @@ function AddDepartment() {
                       name="doctor"
                       label="Department Doctor"
                       placeholder="Department Doctor"
+                    />
+                    <FormInput
+                      name="specialisation"
+                      label="Doctor Specialisation"
+                      placeholder="Doctor Specialisation"
                     />
                     <FormUpload
                       name="doctorSignature"

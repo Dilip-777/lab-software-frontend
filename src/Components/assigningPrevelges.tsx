@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useEffect } from "react";
 import FormSelect from "../ui/FormSelect";
+import { api } from "../Api";
 
 export default function AssignPrivileges() {
   const [roles, setRoles] = React.useState<any[]>([]);
@@ -10,9 +11,7 @@ export default function AssignPrivileges() {
 
   const fetchPrivileges = async () => {
     if (roleid) {
-      const res = await axios.get(
-        `http://localhost:5000/role/getprivileges?roleid=${roleid}`
-      );
+      const res = await api.get(`/role/getprivileges?roleid=${roleid}`);
       // setPrivileges(res.data.data || []);
       const privileges = res.data.data || [];
       const privilegesArray = privileges.map((privilege: any) => {
@@ -24,13 +23,10 @@ export default function AssignPrivileges() {
 
   const handleSubmit = async () => {
     setLoading(true);
-    const res = await axios.post(
-      `http://localhost:5000/role/assignprivileges`,
-      {
-        roleid,
-        privileges,
-      }
-    );
+    const res = await api.post(`/role/assignprivileges`, {
+      roleid,
+      privileges,
+    });
     setLoading(false);
   };
 
@@ -51,6 +47,7 @@ export default function AssignPrivileges() {
         "Price List Creation",
         "Ref Lab",
         "Ref Doctor",
+        "Settings",
       ],
     },
     {
